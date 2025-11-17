@@ -4,8 +4,8 @@ import React from 'react'
 function LandigPage() {
   return (
     <div>
-    </div>
 
+    </div>
   )
 }
 

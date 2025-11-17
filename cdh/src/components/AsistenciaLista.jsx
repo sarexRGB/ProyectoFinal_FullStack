@@ -1,11 +1,11 @@
 import React from 'react'
 
-function AdminContratos() {
+function AsistenciaLista() {
   return (
     <div>
-        
+      
     </div>
   )
 }
 
-export default AdminContratos
+export default AsistenciaLista

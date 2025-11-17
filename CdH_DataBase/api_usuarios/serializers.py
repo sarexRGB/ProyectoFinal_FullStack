@@ -1,4 +1,11 @@
-from .models import Usuario, RolesEmpleado, ChoferDatos, MecanicoDatos,DespachoDatos, Asistencia
+from .models import (
+    Usuario,
+    RolesEmpleado,
+    ChoferDatos,
+    MecanicoDatos,
+    DespachoDatos,
+    Asistencia
+)
 from rest_framework import serializers
 
 # Usuarios

@@ -3,7 +3,7 @@ import React from 'react'
 function AdminInventario() {
   return (
     <div>
-        
+
     </div>
   )
 }
