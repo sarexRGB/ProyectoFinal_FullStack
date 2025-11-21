@@ -1,0 +1,8 @@
+import axiosInstance from "./axiosInstance";
+
+// Vehículos
+export const getVehiculos = () => axiosInstance.get("vehiculos/vehiculo/");
+export const getVehiculo = (id) => axiosInstance.get(`vehiculos/vehiculo/${id}/`);
+export const createVehiculo = (data) => axiosInstance.post("vehiculos/vehiculo/", data);
+export const updateVehiculo = (id, data) => axiosInstance.put(`vehiculos/vehiculo/${id}/`, data);
+export const deleteVehiculo = (id) => axiosInstance.delete(`vehiculos/vehiculo/${id}/`);

@@ -1,4 +1,4 @@
-import React, {useContext} from 'react'
+import React, { useContext, useState } from 'react'
 import {
     Sidebar,
     SidebarHeader,
@@ -10,7 +10,10 @@ import {
     SidebarContent,
     SidebarGroup,
     SidebarGroupContent,
-    SidebarGroupLabel
+    SidebarGroupLabel,
+    SidebarMenuSub,
+    SidebarMenuSubItem,
+    SidebarMenuSubButton,
 } from '@/components/ui/sidebar'
 import mixer from "../img/mixer.png"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -28,12 +31,11 @@ import {
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { AuthContext } from '@/services/AuthContext'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
 function PrivateSidebar() {
-    const navigate = useNavigate()
     const location = useLocation()
-    const {roles, logout} = useContext(AuthContext)
+    const { roles, logout } = useContext(AuthContext)
+    const [openMenu, setOpenMenu] = useState(null)
 
     const items = [
         { title: "Admin Dasboard", path: "/admin", icon: ChartColumn, roles:["Administrador"]},
@@ -82,52 +84,47 @@ function PrivateSidebar() {
                             if (!item.childrens) {
                                 return (
                                     <SidebarMenuItem key={item.path}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={isActive}
-                                        >
-                                            <Link className='flex items-center gap-1' to={item.path}>
-                                                <Icon className='size-6' />
-                                                <div>
-                                                    <div>
-                                                        {item.title}
-                                                    </div>
-                                                </div>
+                                        <SidebarMenuButton asChild isActive={isActive}>
+                                            <Link to={item.path} className='flex items-center gap-2'>
+                                                <Icon className='size-4' />
+                                                <span>{item.title}</span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 )
                             }
                             return (
-                                <Collapsible key={item.title}>
-                                    <CollapsibleTrigger className='flex items-center w-full px-2 py-2 hover:bg-accent gap-2'>
-                                        <Icon />
-                                        <span>{item.title}</span>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        {item.childrens.filter(canSee).map((child) => {
-                                            const ChildrenIcon = child.icon
-                                            const isActive = location.pathname === child.path
-                                            return (
-                                                <SidebarMenuItem key={child.path}>
-                                                    <SidebarMenuButton
-                                                        asChild
-                                                        isActive={isActive}
-                                                    >
-                                                        <Link className='flex items-center gap-1' to={item.path}>
-                                                            <ChildrenIcon className='size-6' />
-                                                            <div>
-                                                                <div>
-                                                                    {child.title}
-                                                                </div>
-                                                            </div>
-                                                        </Link>
-                                                    </SidebarMenuButton>
-                                                </SidebarMenuItem>
-                                            )
-                                        })}
-                                    </CollapsibleContent>
-                                </Collapsible>
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton
+                                        className='flex items-center w-full px-2 py-2 hover:bg-accent gap-2'
+                                        onClick={() =>
+                                            setOpenMenu(openMenu === item.title ? null : item.title)
+                                        }
+                                        data-state={openMenu === item.title ? "open" : "closed"}
+                                    >
+                                        <Icon className='size-5 shrink-0' />
+                                        <span className='truncate group-data-[state=collapsed]:hidden'>{item.title}</span>
+                                    </SidebarMenuButton>
+
+                                    {openMenu === item.title && (
+                                        <SidebarMenuSub>
+                                            {item.childrens.filter(canSee).map((child) => {
+                                                const ChildrenIcon = child.icon
+                                                const isActive = location.pathname === child.path
+                                                return (
+                                                    <SidebarMenuSubItem key={child.path}>
+                                                        <SidebarMenuSubButton asChild isActive={isActive}>
+                                                            <Link to={child.path} className='flex items-center gap-2'>
+                                                                <ChildrenIcon className='size-4' />
+                                                                <span>{child.title}</span>
+                                                            </Link>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                )
+                                            })}
+                                        </SidebarMenuSub>
+                                    )}
+                                </SidebarMenuItem>
                             )
                         })}
                     </SidebarGroupContent>
@@ -140,14 +137,13 @@ function PrivateSidebar() {
                         <SidebarMenuButton asChild onClick={logout}>
                             <a className="flex items-center w-full gap-3">
                                 <LogOut className="size-5 shrink-0" />
-                                <span className="truncate group-data-[collapsible=icon]:hidden">
-                                    Cerrar Sesión
-                                </span>
+                                <span className="truncate group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
                             </a>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
+
             <SidebarRail />
         </Sidebar>
     )
