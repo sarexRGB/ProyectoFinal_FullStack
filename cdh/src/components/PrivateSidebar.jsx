@@ -16,7 +16,7 @@ import {
     SidebarMenuSubButton,
 } from '@/components/ui/sidebar'
 import mixer from "../img/mixer.png"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import {
     ChartColumn,
     Package,
@@ -28,6 +28,7 @@ import {
     BookOpen,
     User,
     List,
+    Briefcase,
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { AuthContext } from '@/services/AuthContext'
@@ -42,6 +43,7 @@ function PrivateSidebar() {
         { title: "Inventario", path: "/admin/inventario", icon: Package, roles:["Administrador", "Despacho"] },
         { title: "Historial", path: "/admin/historial", icon: FileText, roles:["Administrador", "Despacho"] },
         { title: "Personal", path: "/admin/personal", icon: Users, roles:["Administrador"] },
+        { title: "Clientes", path: "/admin/clientes", icon: Briefcase, roles:["Administrador", "Despacho"] },
         {
             title: "Catálogos", icon: BookOpen, roles:["Administrador", "Despacho"], childrens: [
                 { title: "Alquiler", path: "/admin/alquiler", icon: Wrench },

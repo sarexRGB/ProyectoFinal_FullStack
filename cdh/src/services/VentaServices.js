@@ -1,4 +1,4 @@
-import axiosInstance from "/axiosInstance";
+import axiosInstance from "@/services/axiosInstance";
 
 // Ventas
 export const getVentas = () => axiosInstance.get("ventas/venta/");

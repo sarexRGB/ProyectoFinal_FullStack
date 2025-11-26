@@ -3,7 +3,8 @@ from .views import (
     CategoriaListCreateView, CategoriaDetailView,
     ModalidadListCreateView, ModalidadDetailView,
     ProductoListCreateView, ProductoDetailView,
-    ProductoModalidadListCreateView, ProductoModalidadDetailView
+    ProductoModalidadListCreateView, ProductoModalidadDetailView,
+    UploadArchivo
 )
 
 urlpatterns = [
@@ -22,4 +23,7 @@ urlpatterns = [
     # Modalidades por Producto
     path('modalidadproducto/', ProductoModalidadListCreateView.as_view(), name='producto-modalidad-list'),
     path('modalidadproducto/<int:pk>/', ProductoModalidadDetailView.as_view(), name='producto-modalidad-detail'),
+
+    # Cargar imagen
+    path("upload/", UploadArchivo.as_view()),
 ]

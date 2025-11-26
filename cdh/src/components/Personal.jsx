@@ -1,83 +1,91 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Edit, Trash } from 'lucide-react'
-import RegisterEmpleado from '@/components/RegisterEmpleado'
+import { Plus, User, Key, MoreVertical } from 'lucide-react'
+import Register from '@/components/Register'
 import { getUsuarios } from '@/services/UsuariosServices'
 
 function Personal() {
-    const [empleados, setEmpleados] = useState([]);
+    const navigate = useNavigate();
+    const [usuarios, setUsuario] = useState([]);
     const [openModal, setOpenModal] = useState(false);
-    const [selectedEmpleado, setSelectedEmpleado] = useState(null);
 
     useEffect(() => {
-        fetchEmpleados();
+        fetchUsuarios();
     }, [])
 
-    const fetchEmpleados = async () => {
+    const fetchUsuarios = async () => {
         try {
-            const data = await getUsuarios();
-            setEmpleados(data.filter(u => u.roles?.length > 0));
+            const response = await getUsuarios();
+            setUsuario(response.data);
+            console.log(response.data)
         } catch (error) {
-            console.error("Error al obtener empleados", error);
+            console.error("Error al obtener usuarios", error);
         }
     };
 
-    const handleEdit = (empleado) => {
-        setSelectedEmpleado(empleado);
-        setOpenModal(true);
-    };
-
     const handleCloseModal = () => {
-        setSelectedEmpleado(null);
         setOpenModal(false);
-        fetchEmpleados();
+        fetchUsuarios();
     };
 
     return (
         <div className='p-6'>
-            <div className='flex justify-between items-center mb-4'>
-                <h1 className='text-2xl font-bold'>Personal</h1>
+            <div className='flex justify-end items-center mb-4 gap-2'>
                 <Button onClick={() => setOpenModal(true)} variant='default' className='flex items-center gap-2'>
                     <Plus size={18} /> Agregar Empleado
                 </Button>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <MoreVertical size={18} />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => navigate('/admin/roles')}>
+                            <Key size={18} className="mr-2" />
+                            Roles
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Usuario</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Roles</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className='text-lg font-semibold'>Nombre</TableHead>
+                        <TableHead className='text-lg font-semibold'>Teléfono</TableHead>
+                        <TableHead className='text-lg font-semibold'>Email</TableHead>
+                        <TableHead className='text-lg font-semibold'>Roles</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {empleados.map((empleado) => (
-                        <TableRow key={empleado.id}>
-                            <TableCell>{empleado.username}</TableCell>
-                            <TableCell>{empleado.email}</TableCell>
-                            <TableCell>{empleado.roles}</TableCell>
-                            <TableCell className='flex gap-2'>
-                                <Button size='sm' viarian='outline' onClick={() => handleEdit(empleado)}>
-                                    <Edit size={16} />
-                                </Button>
-                                <Button size='sm' variant='destructive'>
-                                    <Trash size={16} />
-                                </Button>
-                            </TableCell>
+                    {usuarios.map((usuario) => (
+                        <TableRow key={usuario.id} onClick={() => navigate(`/admin/personal/${usuario.id}`)}>
+                            <TableCell className='text-sm text-gray-300'>{usuario.nombre_completo}</TableCell>
+                            <TableCell className='text-sm text-gray-300'>{usuario.telefono}</TableCell>
+                            <TableCell className='text-sm text-gray-300'>{usuario.email}</TableCell>
+                            <TableCell className='text-sm text-gray-300'>{usuario.roles?.join(" / ") || 'Sin roles'}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
 
             {openModal && (
-                <RegisterEmpleado
+                <Register
                     isOpen={openModal}
                     onClose={handleCloseModal}
-                    empleado={selectedEmpleado}
                 />
             )}
+
         </div>
     )
 }

@@ -42,3 +42,6 @@ export const getAsistencia = (id) => axiosInstance.get(`usuarios/asistencia/${id
 export const createAsistencia = (data) => axiosInstance.post("usuarios/asistencia/", data);
 export const updateAsistencia = (id, data) => axiosInstance.put(`usuarios/asistencia/${id}/`, data);
 export const deleteAsistencia = (id) => axiosInstance.delete(`usuarios/asistencia/${id}/`);
+
+// empleados
+export const getEmpleados = () => axiosInstance.get("usuarios/empleados/")

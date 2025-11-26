@@ -38,7 +38,7 @@ class Producto(models.Model):
         choices=EstadoProducto.choices,
         default=EstadoProducto.DISPONIBLE
     )
-    imagen_file = models.ImageField(upload_to='Productos/', blank=True, null=True)
+    imagen = models.URLField(max_length=500, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Producto'

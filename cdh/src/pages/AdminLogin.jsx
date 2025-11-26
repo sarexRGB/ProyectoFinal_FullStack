@@ -1,5 +1,5 @@
 import React from 'react'
-import { LoginForm } from '@/components/login-form'
+import LoginForm from '@/components/LoginForm'
 
 function AdminLogin() {
   return (

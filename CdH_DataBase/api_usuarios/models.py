@@ -6,6 +6,7 @@ from django.dispatch import receiver
 # Usuarios
 class Usuario(AbstractUser):
     telefono = models.CharField(max_length=15, blank=True, null=True)
+    fecha_ingreso = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return self.username
@@ -33,7 +34,8 @@ class RolesEmpleado(models.Model):
 @receiver(post_save, sender=Group)
 def crear_rol_empleado(sender, instance, created, **kwargs):
     if created:
-        RolesEmpleado.objects.create(group=instance)
+        RolesEmpleado.objects.get_or_create(group=instance)
+
 
 # Choferes
 class ChoferDatos(models.Model):
@@ -47,12 +49,11 @@ class ChoferDatos(models.Model):
         D2 = 'D2', 'Maquinaria mediana'
         D3 = 'D3', 'Maquinaria pesada'
     empleado = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    licencia_numero = models.CharField(max_length=50)
+    licencia_numero = models.CharField(max_length=20)
     licencia_tipo = models.CharField(max_length=3, choices=Tipo_licencia.choices, default=Tipo_licencia.A1)
     fecha_vencimiento = models.DateField()
     experiencia_anios = models.IntegerField()
     observaciones = models.TextField(blank=True, null=True)
-    fecha_ingreso = models.DateField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 
@@ -71,12 +72,11 @@ class MecanicoDatos(models.Model):
     experiencia_anios = models.IntegerField()
     disponibilidad = models.BooleanField(default=True)
     observaciones = models.TextField(blank=True, null=True)
-    fecha_ingreso = models.DateField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.empleado
+        return self.empleado.username
 
     class Meta:
         verbose_name = "Datos de mecanico"
@@ -86,7 +86,6 @@ class MecanicoDatos(models.Model):
 class DespachoDatos(models.Model):
     empleado = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     observaciones = models.TextField(blank=True, null=True)
-    fecha_ingreso = models.DateField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 

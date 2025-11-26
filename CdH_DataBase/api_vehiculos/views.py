@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from .models import Vehiculo
+from .serializers import VehiculoSerializer
+from rest_framework import generics
 
-# Create your views here.
+class VehiculoListCreateView(generics.ListCreateAPIView):
+    queryset = Vehiculo
+    serializer_class = VehiculoSerializer
+
+class VehiculoDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Vehiculo
+    serializer_class = VehiculoSerializer

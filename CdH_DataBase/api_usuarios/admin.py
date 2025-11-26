@@ -33,14 +33,14 @@ class AsistenciaInline(admin.TabularInline):
 # Admin personalizado del usuario
 @admin.register(Usuario)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff',)
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'fecha_ingreso',)
     search_fields = ('username', 'email', 'first_name', 'last_name',)
 
     fieldsets = UserAdmin.fieldsets + (
-        ('Información adicional', {'fields': ('telefono',)}),
+        ('Información adicional', {'fields': ('telefono', 'fecha_ingreso',)}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Información adicional', {'fields': ('telefono',)}),
+        ('Información adicional', {'fields': ('telefono', 'fecha_ingreso',)}),
     )
 
     def get_inlines(self, request, obj=None):
@@ -86,7 +86,7 @@ class CustomGroupAdmin(admin.ModelAdmin):
 # Registros restantes
 @admin.register(ChoferDatos)
 class ChoferDatosAdmin(admin.ModelAdmin):
-    list_display = ('empleado_nombre', 'licencia_numero', 'licencia_tipo', 'activo', 'fecha_ingreso')
+    list_display = ('empleado_nombre', 'licencia_numero', 'licencia_tipo', 'activo')
     list_filter = ('activo', 'licencia_tipo')
     search_fields = ('empleado__first_name', 'empleado__last_name', 'licencia_numero')
     def empleado_nombre(self, obj):
@@ -105,7 +105,7 @@ class MecanicoDatosAdmin(admin.ModelAdmin):
 
 @admin.register(DespachoDatos)
 class DespachoDatosAdmin(admin.ModelAdmin):
-    list_display = ('empleado_nombre', 'fecha_ingreso', 'activo')
+    list_display = ('empleado_nombre', 'activo')
     list_filter = ('activo',)
     search_fields = ('empleado__first_name', 'empleado__last_name')
 

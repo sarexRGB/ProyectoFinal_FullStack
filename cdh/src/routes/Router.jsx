@@ -8,8 +8,12 @@ import AdminDashboard from '@/pages/AdminDashboard';
 import AdminInventario from '@/pages/AdminInventario';
 import AdminHistorial from '@/pages/AdminHistorial';
 import AdminPersonal from '@/pages/AdminPersonal';
+import AdminPerfiles from '@/pages/AdminPerfiles';
 import AdminAlquiler from '@/pages/AdminAlquiler';
 import AdminVenta from '@/pages/AdminVenta';
+import CatModProvPage from '@/pages/CatModProvPage';
+import Roles from '@/components/Roles';
+import AdminClientes from '@/pages/AdminClientes';
 import EmpleadoDashboard from '@/pages/EmpleadoDashboard.jsx';
 import EmpleadoPerfil from '@/pages/EmpleadoPerfil.jsx';
 import EmpleadoTareas from '@/pages/EmpleadoTareas.jsx';
@@ -38,11 +42,15 @@ function Router() {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path='inventario' element={<AdminInventario/>} />
-          <Route path='historial' element={<AdminHistorial/>} />
-          <Route path='personal' element={<AdminPersonal/>} />
-          <Route path='alquiler' element={<AdminAlquiler/>} />
-          <Route path='venta' element={<AdminVenta/>} />
+          <Route path='inventario' element={<AdminInventario />} />
+          <Route path='inventario/config/:type' element={<CatModProvPage />} />
+          <Route path='historial' element={<AdminHistorial />} />
+          <Route path='clientes' element={<AdminClientes />} />
+          <Route path='personal' element={<AdminPersonal />} />
+          <Route path='roles' element={<Roles />} />
+          <Route path='personal/:id' element={<AdminPerfiles />} />
+          <Route path='alquiler' element={<AdminAlquiler />} />
+          <Route path='venta' element={<AdminVenta />} />
         </Route>
 
         {/* Rutas protegidas empleados */}

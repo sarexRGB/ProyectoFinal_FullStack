@@ -6,15 +6,18 @@ from .views import (
     MecanicoDatosListCreateView, MecanicoDatosDetailView,
     DespachoDatosListCreateView, DespachoDatosDetailView,
     AsistenciaListCreateView, AsistenciaDetailView,
-    profile_view
+    profile_view, profile_update_view, EmpleadoListView
 )
 
 urlpatterns = [
     # Usuarios
-    path('', UsuarioListCreateView.as_view(), name='usuarios-list'),
-    path('<int:pk>/', UsuarioDetailView.as_view(), name='usuarios-detail'),
+    path('usuario/', UsuarioListCreateView.as_view(), name='usuarios-list'),
+    path('usuario/<int:pk>/', UsuarioDetailView.as_view(), name='usuarios-detail'),
 
     path('profile/', profile_view, name='user-profile'),
+    path('profile/update/', profile_update_view, name='user-profile-update'),
+
+    path('empleados/', EmpleadoListView.as_view(), name='empleados-list'),
 
     # Roles de empleados
     path('roles/', RolesEmpleadoListCreateView.as_view(), name='roles-list'),

@@ -22,7 +22,7 @@ class RegisterView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
         email = request.data.get("email", "")
-        group_name = request.data.get("group", "Empleado")
+        group_ids = request.data.get("groups", [])
 
         if Usuario.objects.filter(username=username).exists():
             return Response({"error": "Ese usuario ya existe"}, status=400)
@@ -33,11 +33,24 @@ class RegisterView(APIView):
             email=email
         )
 
-        group = Group.objects.filter(name=group_name).first()
-        if group:
-            nuevo.groups.add(group)
+        # Assign multiple groups if provided
+        if group_ids:
+            # Validate that all group IDs exist
+            groups = Group.objects.filter(id__in=group_ids)
+            if groups.count() != len(group_ids):
+                nuevo.delete()  # Rollback user creation
+                return Response({"error": "Uno o más grupos no son válidos"}, status=400)
+            
+            nuevo.groups.set(groups)
 
-        return Response({"message": "Usuario creado correctamente"}, status=201)
+        # Return user data with ID and assigned groups
+        return Response({
+            "message": "Usuario creado correctamente",
+            "id": nuevo.id,
+            "username": nuevo.username,
+            "email": nuevo.email,
+            "groups": [{"id": g.id, "name": g.name} for g in nuevo.groups.all()]
+        }, status=201)
 
 
 class LogoutView(APIView):

@@ -4,53 +4,11 @@ from .models import (
     ChoferDatos,
     MecanicoDatos,
     DespachoDatos,
-    Asistencia
+    Asistencia,
 )
 from rest_framework import serializers
 
-# Usuarios
-class UsuarioListSerializer(serializers.ModelSerializer):
-    nombre_completo = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Usuario
-        fields = ['id',
-            'first_name',
-            'last_name',
-            'nombre_completo',
-            'email',
-            ]
-
-    def get_nombre_completo(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip()
-
-class UsuarioDetailSerializer(serializers.ModelSerializer):
-    nombre_completo = serializers.SerializerMethodField()
-    roles = serializers.SerializerMethodField()
-    class Meta:
-        model = Usuario
-        fields = [
-            'id',
-            'first_name',
-            'last_name',
-            'nombre_completo',
-            'email',
-            'telefono',
-            'username',
-            'is_active',
-            'is_staff',
-            'date_joined',
-            'roles',
-        ]
-
-    def get_roles(self, obj):
-        return [group.name for group in obj.groups.all()]
-
-    def get_nombre_completo(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip()
-
-
-# Roles de empleado
+# ------------------- Roles de empleado -------------------
 class RolesEmpleadoListSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(source='group.name', read_only=True)
 
@@ -59,7 +17,7 @@ class RolesEmpleadoListSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'group_name',
-            'area_asignada'
+            'area_asignada',
         ]
 
 class RolesEmpleadoDetailSerializer(serializers.ModelSerializer):
@@ -72,13 +30,12 @@ class RolesEmpleadoDetailSerializer(serializers.ModelSerializer):
             'group_name',
             'descripcion',
             'requiere_licencia',
-            'area_asignada'
+            'area_asignada',
         ]
 
-
-# Choferes
+# ------------------- Choferes -------------------
 class ChoferDatosListSerializer(serializers.ModelSerializer):
-    empleado_nombre = serializers.CharField(source='empleado.get_full_name',read_only=True)
+    empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
 
     class Meta:
         model = ChoferDatos
@@ -86,11 +43,11 @@ class ChoferDatosListSerializer(serializers.ModelSerializer):
             'id',
             'empleado_nombre',
             'licencia_tipo',
-            'activo'
+            'activo',
         ]
 
 class ChoferDatosDetailSerializer(serializers.ModelSerializer):
-    empleado_nombre = serializers.CharField(source='empleado.get_full_name',read_only=True)
+    empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
     email = serializers.EmailField(source='empleado.email', read_only=True)
     telefono = serializers.CharField(source='empleado.telefono', read_only=True)
 
@@ -106,12 +63,11 @@ class ChoferDatosDetailSerializer(serializers.ModelSerializer):
             'fecha_vencimiento',
             'experiencia_anios',
             'observaciones',
-            'fecha_ingreso',
-            'activo'
+            'fecha_registro',
+            'activo',
         ]
 
-
-# Mecánicos
+# ------------------- Mecánicos -------------------
 class MecanicoDatosListSerializer(serializers.ModelSerializer):
     empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
 
@@ -122,11 +78,11 @@ class MecanicoDatosListSerializer(serializers.ModelSerializer):
             'empleado_nombre',
             'especialidad',
             'experiencia_anios',
-            'activo'
+            'activo',
         ]
 
 class MecanicoDatosDetailSerializer(serializers.ModelSerializer):
-    empleado_nombre = serializers.CharField(source='empleado.get_full_name',read_only=True)
+    empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
     email = serializers.EmailField(source='empleado.email', read_only=True)
     telefono = serializers.CharField(source='empleado.telefono', read_only=True)
 
@@ -142,12 +98,11 @@ class MecanicoDatosDetailSerializer(serializers.ModelSerializer):
             'experiencia_anios',
             'disponibilidad',
             'observaciones',
-            'fecha_ingreso',
-            'activo'
+            'fecha_registro',
+            'activo',
         ]
 
-
-# Despachadores
+# ------------------- Despachadores -------------------
 class DespachoDatosListSerializer(serializers.ModelSerializer):
     empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
 
@@ -160,7 +115,7 @@ class DespachoDatosListSerializer(serializers.ModelSerializer):
         ]
 
 class DespachoDatosDetailSerializer(serializers.ModelSerializer):
-    empleado_nombre = serializers.CharField(source='empleado.get_full_name',read_only=True)
+    empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
     email = serializers.EmailField(source='empleado.email', read_only=True)
     telefono = serializers.CharField(source='empleado.telefono', read_only=True)
 
@@ -172,11 +127,11 @@ class DespachoDatosDetailSerializer(serializers.ModelSerializer):
             'email',
             'telefono',
             'observaciones',
-            'fecha_ingreso',
-            'activo'
+            'fecha_registro',
+            'activo',
         ]
 
-# Asistencias
+# ------------------- Asistencias -------------------
 class AsistenciaListSerializer(serializers.ModelSerializer):
     empleado_nombre = serializers.CharField(source='empleado.get_full_name', read_only=True)
 
@@ -186,7 +141,7 @@ class AsistenciaListSerializer(serializers.ModelSerializer):
             'id',
             'empleado_nombre',
             'estado',
-            'fecha'
+            'fecha',
         ]
 
 class AsistenciaDetailSerializer(serializers.ModelSerializer):
@@ -202,5 +157,84 @@ class AsistenciaDetailSerializer(serializers.ModelSerializer):
             'fecha',
             'hora_entrada',
             'hora_salida',
-            'estado'
+            'estado',
         ]
+
+# ------------------- Usuarios -------------------
+class UsuarioListSerializer(serializers.ModelSerializer):
+    nombre_completo = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Usuario
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'nombre_completo',
+            'email',
+            'telefono',
+            'roles',
+        ]
+
+    def get_nombre_completo(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+
+    def get_roles(self, obj):
+        return [group.name for group in obj.groups.all()]
+
+class UsuarioDetailSerializer(serializers.ModelSerializer):
+    nombre_completo = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+    groups = serializers.SerializerMethodField()
+    role_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Usuario
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'nombre_completo',
+            'email',
+            'telefono',
+            'username',
+            'is_active',
+            'is_staff',
+            'date_joined',
+            'roles',
+            'groups',
+            'role_data',
+        ]
+
+    def get_roles(self, obj):
+        return [group.name for group in obj.groups.all()]
+
+    def get_nombre_completo(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+
+    def get_groups(self, obj):
+        return [{'id': g.id, 'name': g.name} for g in obj.groups.all()]
+
+    def get_role_data(self, obj):
+        data = {}
+        for group in obj.groups.all():
+            if 'Chofer' in group.name:
+                try:
+                    chofer_data = ChoferDatos.objects.get(empleado=obj)
+                    data[group.id] = ChoferDatosDetailSerializer(chofer_data).data
+                except ChoferDatos.DoesNotExist:
+                    pass
+            elif 'Mecánico' in group.name:
+                try:
+                    mecanico_data = MecanicoDatos.objects.get(empleado=obj)
+                    data[group.id] = MecanicoDatosDetailSerializer(mecanico_data).data
+                except MecanicoDatos.DoesNotExist:
+                    pass
+            elif 'Despacho' in group.name:
+                try:
+                    despacho_data = DespachoDatos.objects.get(empleado=obj)
+                    data[group.id] = DespachoDatosDetailSerializer(despacho_data).data
+                except DespachoDatos.DoesNotExist:
+                    pass
+        return data

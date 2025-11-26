@@ -8,8 +8,9 @@ function PrivateNavbar() {
     const routeTitles = {
         '/admin' : 'Dashboard Administrativo',
         '/admin/inventario' : 'Inventario',
-        '/admin/historial' : 'Historial de Alquileres',
+        '/admin/historial' : 'Historial',
         '/admin/personal' : 'Personal de la Empresa',
+        '/admin/clientes' : 'Clientes',
         '/admin/alquiler' : 'Catálogo de Alquiler',
         '/admin/venta' : 'Catálogo de Venta',
         '/empleado' : 'Dashboard',

@@ -1,7 +1,15 @@
 from django.urls import path
-from . import views
+from .views import (
+    VentaListCreateView, VentaDetailView,
+    DetalleVentaListCreateView, DetalleVentaDetailView
+)
 
 urlpatterns = [
-    # Puedes agregar tus rutas aquí luego
-    # Ejemplo: path('', views.ProductoListView.as_view(), name='lista_productos'),
+    # Venta
+    path('venta/', VentaListCreateView.as_view(), name='venta-list'),
+    path('venta/<int:pk>/', VentaDetailView.as_view(), name='venta-Detail'),
+
+    # Detalles de venta
+    path('detalleVenta/', DetalleVentaListCreateView.as_view(), name='detalleVenta-list'),
+    path('detalleVenta/<int:pk>/', DetalleVentaDetailView.as_view(), name='detalleVenta-Detail'),
 ]

@@ -16,6 +16,11 @@ export const getProfile = async () => {
     return response.data;
 };
 
+export const updateProfile = async (data) => {
+    const response = await axiosInstance.put("usuarios/profile/update/", data);
+    return response.data;
+};
+
 export const logoutRequest = async () => {
     const refresh = localStorage.getItem("refresh");
     if (refresh) {
@@ -27,3 +32,5 @@ export const logoutRequest = async () => {
     }
     localStorage.clear();
 };
+
+export const registerUser = (data) => axiosInstance.post("auth/register/", data);

@@ -1,7 +1,7 @@
 from django.urls import path
-from . import views
+from .views import NotificacionListCreateView, NotificacionDetailView
 
 urlpatterns = [
-    # Puedes agregar tus rutas aquí luego
-    # Ejemplo: path('', views.ProductoListView.as_view(), name='lista_productos'),
+    path('notificacion/', NotificacionListCreateView.as_view(), name='notificación-list'),
+    path('notificacion/<int:pk>', NotificacionDetailView.as_view(), name='notificación-detail'),
 ]

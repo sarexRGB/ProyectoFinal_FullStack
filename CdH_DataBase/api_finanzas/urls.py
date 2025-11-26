@@ -1,7 +1,7 @@
 from django.urls import path
-from . import views
+from .views import PagoListCreateView, PagoDetailView
 
 urlpatterns = [
-    # Puedes agregar tus rutas aquí luego
-    # Ejemplo: path('', views.ProductoListView.as_view(), name='lista_productos'),
+    path('pago/', PagoListCreateView.as_view(), name='pago-list'),
+    path('pago/<int:pk>/', PagoDetailView.as_view(), name='pago-detail')
 ]
