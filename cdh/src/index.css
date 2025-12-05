@@ -12,11 +12,11 @@
   --card: #ffffff;
   --card-foreground: #262626;
   --popover: #ffffff;
-  --popover-foreground: #262626;
+  --popover-foreground: #333333;
   --primary: #f59e0b;
-  --primary-foreground: #000000;
+  --primary-foreground: #262626;
   --secondary: #f3f4f6;
-  --secondary-foreground: #4b5563;
+  --secondary-foreground: #666666;
   --muted: #f9fafb;
   --muted-foreground: #6b7280;
   --accent: #fffbeb;

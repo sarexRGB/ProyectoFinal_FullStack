@@ -26,19 +26,7 @@ class ModalidadSerializer(serializers.ModelSerializer):
 
 
 # Productos
-class ProductoListSerializer(serializers.ModelSerializer):
-    categoria_name = serializers.CharField(source= 'categoria.nombre', read_only=True)
-    class Meta:
-        model = Producto
-        fields = [
-            'id',
-            'nombre',
-            'precio_venta',
-            'precio_alquiler',
-            'categoria_name'
-        ]
-
-class ProductoDetailSerializer(serializers.ModelSerializer):
+class ProductoSerializer(serializers.ModelSerializer):
     categoria_name = serializers.CharField(source= 'categoria.nombre', read_only=True)
 
     class Meta:
@@ -49,9 +37,10 @@ class ProductoDetailSerializer(serializers.ModelSerializer):
             'descripcion',
             'precio_venta',
             'precio_alquiler',
+            'categoria',
             'categoria_name',
             'estado',
-            'imagen_file'
+            'imagen'
         ]
 
 

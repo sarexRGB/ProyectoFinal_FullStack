@@ -19,7 +19,6 @@ function RenderCatModProv() {
     const [openDelete, setOpenDelete] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
 
-    // Configuration based on type
     const config = {
         categorias: {
             title: 'Gestión de Categorías',
@@ -44,10 +43,8 @@ function RenderCatModProv() {
             delete: deleteBodega,
             columns: [
                 { header: 'Nombre', key: 'nombre' },
-                { header: 'Dirección', key: 'direccion' },
-                { header: 'Capacidad', key: 'capacidad' }
             ],
-            formFields: { nombre: '', direccion: '', capacidad: '' },
+            formFields: { nombre: '' },
             modalType: 'bodega'
         },
         proveedores: {
@@ -56,7 +53,7 @@ function RenderCatModProv() {
             fetch: getProveedores,
             create: createProveedor,
             update: updateProveedor,
-            delete: deteleProveedor, // Note: typo in service
+            delete: deteleProveedor,
             columns: [
                 { header: 'Nombre', key: 'nombre' },
                 { header: 'Teléfono', key: 'telefono' },

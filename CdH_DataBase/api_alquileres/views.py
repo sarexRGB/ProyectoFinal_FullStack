@@ -5,9 +5,9 @@ from .models import (
     Entrega
 )
 from .serializers import (
-    AlquilerListSerializer, AlquilerDetailSerializer,
-    DevolucionListSerializer, DevolucionDetailSerializer,
-    EntregaListSerializer, EntregaDetailSerializer,
+    AlquilerSerializer,
+    DevolucionSerializer,
+    EntregaSerializer,
     DetalleAlquilerSerializer
 )
 from rest_framework import generics
@@ -34,47 +34,35 @@ class UploadArchivo(APIView):
 # Alquiler
 class AlquilerListCreateView(generics.ListCreateAPIView):
     queryset = Alquiler.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return AlquilerListSerializer
-        return AlquilerDetailSerializer
+    serializer_class = AlquilerSerializer
 
 class AlquilerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Alquiler.objects.all()
-    serializer_class = AlquilerDetailSerializer
+    serializer_class = AlquilerSerializer
 
 # Detalle del alquiler
 class DetalleAlquilerListCreateView(generics.ListCreateAPIView):
-    queryset = DetalleAlquiler
+    queryset = DetalleAlquiler.objects.all()
     serializer_class = DetalleAlquilerSerializer
 
 class DetalleAlquilerDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = DetalleAlquiler
+    queryset = DetalleAlquiler.objects.all()
     serializer_class = DetalleAlquilerSerializer
 
 # Devolución del alquiler
 class DevolucionListCreateView(generics.ListCreateAPIView):
     queryset = Devolucion.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return DevolucionListSerializer
-        return DevolucionDetailSerializer
+    serializer_class = DevolucionSerializer
 
 class DevolucionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Devolucion.objects.all()
-    serializer_class = DevolucionDetailSerializer
+    serializer_class = DevolucionSerializer
 
 # Entregas
 class EntregaListCreateView(generics.ListCreateAPIView):
     queryset = Entrega.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return EntregaListSerializer
-        return EntregaDetailSerializer
+    serializer_class = EntregaSerializer
 
 class EntregaDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Entrega.objects.all()
-    serializer_class = EntregaDetailSerializer
+    serializer_class = EntregaSerializer

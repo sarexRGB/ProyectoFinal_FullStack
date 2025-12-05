@@ -15,6 +15,7 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
         username: '',
         first_name: '',
         last_name: '',
+        segundo_apellido: '',
         telefono: '',
         email: '',
         fecha_ingreso: '',
@@ -37,9 +38,10 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
                         username: usuario.username || '',
                         first_name: usuario.first_name || '',
                         last_name: usuario.last_name || '',
+                        segundo_apellido: usuario.segundo_apellido || '',
                         telefono: usuario.telefono || '',
                         email: usuario.email || '',
-                        fecha_ingreso: usuario.fecha_ingreso || '',
+                        fecha_ingreso: usuario.fecha_ingreso ? usuario.fecha_ingreso.split('T')[0] : '',
                         password: '',
                     });
 
@@ -49,7 +51,7 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
                         setRoleData(usuario.role_data);
                     }
                 } else {
-                    setFormData({ username: '', first_name: '', last_name: '', telefono: '', email: '', password: '' });
+                    setFormData({ username: '', first_name: '', last_name: '', segundo_apellido: '', telefono: '', email: '', password: '' });
                     setSelectedGroups([]);
                     setRoleData({});
                 }
@@ -73,8 +75,8 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
 
         setRoleData(prev => ({
             ...prev,
-            [groupId]: {
-                ...prev[groupId],
+            [String(groupId)]: {
+                ...prev[String(groupId)],
                 [field]: finalValue
             }
         }));
@@ -84,14 +86,14 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
         if (typeof checked === 'boolean') {
             if (checked) {
                 setSelectedGroups(prev => prev.includes(groupId) ? prev : [...prev, groupId]);
-                if (!roleData[groupId]) {
-                    setRoleData(prev => ({ ...prev, [groupId]: {} }));
+                if (!roleData[String(groupId)]) {
+                    setRoleData(prev => ({ ...prev, [String(groupId)]: {} }));
                 }
             } else {
                 setSelectedGroups(prev => prev.filter(id => id !== groupId));
                 setRoleData(prev => {
                     const newData = { ...prev };
-                    delete newData[groupId];
+                    delete newData[String(groupId)];
                     return newData;
                 });
             }
@@ -153,10 +155,10 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
 
             onClose();
         } catch (error) {
-            console.error('Error al guardar empleado', error);
-            alert('Ocurrió un error al guardar el empleado');
+            console.log("ERROR BACKEND:", error.response?.data);
         }
     }
+    console.log("DATA ENVIADA:", formData)
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -171,11 +173,14 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
                 <div className='grid gap-4 py-4'>
                     <Input placeholder='Usuario' name='username' value={formData.username} onChange={handleChange} />
                     <Input placeholder='Nombre' name='first_name' value={formData.first_name} onChange={handleChange} />
-                    <Input placeholder='Apellidos' name='last_name' value={formData.last_name} onChange={handleChange} />
+                    <Input placeholder='Primer Apellido' name='last_name' value={formData.last_name} onChange={handleChange} />
+                    <Input placeholder='Segundo Apellido' name='segundo_apellido' value={formData.segundo_apellido} onChange={handleChange} />
                     <Input placeholder='Teléfono' name='telefono' value={formData.telefono} onChange={handleChange} />
                     <Input placeholder='Correo' name='email' type='email' value={formData.email} onChange={handleChange} />
                     <Input placeholder='Fecha de Ingreso' name='fecha_ingreso' type='date' value={formData.fecha_ingreso} onChange={handleChange} />
-                    <Input placeholder='Contraseña' name='password' type='password' value={formData.password} onChange={handleChange} />
+                    {!usuario && (
+                        <Input placeholder='Contraseña' name='password' type='password' value={formData.password} onChange={handleChange} />
+                    )}
                 </div>
 
                 <div className='grid gap-3 py-2'>

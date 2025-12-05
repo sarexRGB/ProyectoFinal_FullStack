@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 class VehiculoSerializer(serializers.ModelSerializer):
     class Meta:
-        models = Vehiculo
+        model = Vehiculo
         fields = [
             'id',
             'placa',

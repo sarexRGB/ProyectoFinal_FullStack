@@ -36,7 +36,6 @@ class Proveedor(models.Model):
 class Inventario(models.Model):
     producto = models.ForeignKey('api_productos.Producto', on_delete=models.CASCADE, related_name='Inventario')
     bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
-    ubicacion = models.CharField(max_length=100)
     stock = models.IntegerField()
     minimo_stock = models.IntegerField(default=0)
     activo = models.BooleanField(default=True)
@@ -90,5 +89,5 @@ class MovimientoInventario(models.Model):
     )
     cantidad = models.IntegerField()
     fecha = models.DateTimeField()
-    despachador = models.ForeignKey('api_usuarios.usuario', on_delete=models.CASCADE, related_name='MovimientoInventario')
+    despachador = models.ForeignKey('api_usuarios.Usuario', on_delete=models.CASCADE, related_name='MovimientoInventario')
 

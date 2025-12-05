@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { AuthContext } from '@/services/AuthContext'
+import { toast } from "sonner"; 
 
 function LoginForm({ className, ...props }) {
   const { login } = useContext(AuthContext)
@@ -33,14 +34,17 @@ function LoginForm({ className, ...props }) {
 
       if (normalizedRoles.includes('administrador')) {
         console.log('Redirigiendo a /admin')
+        toast.success('Redirigiendo a /admin')
         navigate('/admin')
       }
       else if (normalizedRoles.some(r => ['chofer', 'mecanico', 'mecánico', 'despacho'].includes(r))) {
         console.log('Redirigiendo a /empleado')
+        toast.success('Redirigiendo a /empleado')
         navigate('/empleado')
       }
       else {
         console.log('Redirigiendo a /')
+        toast.success('Redirigiendo a /')
         navigate('/')
       }
 

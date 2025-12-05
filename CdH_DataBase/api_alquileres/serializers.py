@@ -7,19 +7,9 @@ from .models import (
 from rest_framework import serializers
 
 # Alquiler
-class AlquilerListSerializer(serializers.ModelSerializer):
+class AlquilerSerializer(serializers.ModelSerializer):
     class Meta:
-        models = Alquiler
-        fields = [
-            'id',
-            'cliente',
-            'total',
-            'estado'
-        ]
-
-class AlquilerDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        models = Alquiler
+        model = Alquiler
         fields = [
             'id',
             'cliente',
@@ -32,29 +22,23 @@ class AlquilerDetailSerializer(serializers.ModelSerializer):
 
 # Detalle del alquiler
 class DetalleAlquilerSerializer(serializers.ModelSerializer):
+    producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
     class Meta:
-        models = DetalleAlquiler
+
+        model = DetalleAlquiler
         fields = [
             'id',
             'alquiler',
             'producto',
+            'producto_nombre',
             'cantidad',
             'precio_diario'
         ]
 
 # Devolución del alquiler
-class DevolucionListSerializer(serializers.ModelSerializer):
+class DevolucionSerializer(serializers.ModelSerializer):
     class Meta:
-        models = Devolucion
-        fields = [
-            'id',
-            'alquiler',
-            'fecha'
-        ]
-
-class DevolucionDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        models = Devolucion
+        model = Devolucion
         fields = [
             'id',
             'alquiler',
@@ -64,19 +48,9 @@ class DevolucionDetailSerializer(serializers.ModelSerializer):
         ]
 
 # Entregas
-class EntregaListSerializer(serializers.ModelSerializer):
+class EntregaSerializer(serializers.ModelSerializer):
     class Meta:
-        models = Entrega
-        fields = [
-            'id',
-            'chofer',
-            'alquiler',
-            'estado'
-        ]
-
-class EntregaDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        models = Entrega
+        model = Entrega
         fields = [
             'id',
             'chofer',

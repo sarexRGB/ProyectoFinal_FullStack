@@ -4,7 +4,7 @@ from rest_framework import serializers
 # Venta
 class VentaSerializer(serializers.ModelSerializer):
     class Meta:
-        models = Venta
+        model = Venta
         fields = [
             'id',
             'cliente',
@@ -15,12 +15,14 @@ class VentaSerializer(serializers.ModelSerializer):
 
 # Detalles de venta
 class DetalleVentaSerializer(serializers.ModelSerializer):
+    producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
     class Meta:
-        models = DetalleVenta
+        model = DetalleVenta
         fields = [
             'id',
             'venta',
             'producto',
+            'producto_nombre',
             'cantidad',
             'precio_unitario'
         ]

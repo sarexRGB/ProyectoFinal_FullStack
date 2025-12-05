@@ -13,6 +13,7 @@ import { ArrowLeft, User, Mail, Shield, Truck, Wrench, Package, MoreVertical, Pe
 import { AuthContext } from '@/services/AuthContext'
 import { getProfile } from '@/services/authServices'
 import { getUsuario, deleteUsuario } from '@/services/UsuariosServices'
+import Register from './Register'
 import UpdatePerfil from '@/components/UpdatePerfil'
 
 function PerfilUsuario({ userId }) {
@@ -234,7 +235,7 @@ function PerfilUsuario({ userId }) {
                             <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <User size={16} /> Nombre Completo
                             </Label>
-                            <p className="text-lg">{usuario.first_name} {usuario.last_name}</p>
+                            <p className="text-lg">{usuario.first_name} {usuario.last_name} {usuario.segundo_apellido}</p>
                         </div>
                         <div className="space-y-1">
                             <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -253,10 +254,10 @@ function PerfilUsuario({ userId }) {
                                 <Shield size={16} /> Roles
                             </Label>
                             <div className="flex flex-wrap gap-2">
-                                {usuario.roles && usuario.roles.length > 0 ? (
-                                    usuario.roles.map((role, index) => (
+                                {usuario.groups && usuario.groups.length > 0 ? (
+                                    usuario.groups.map((group, index) => (
                                         <span key={index} className="px-2 py-1 bg-secondary rounded-md text-sm font-medium">
-                                            {role}
+                                            {group.name}
                                         </span>
                                     ))
                                 ) : (
@@ -277,11 +278,17 @@ function PerfilUsuario({ userId }) {
             {renderRoleInfo()}
 
             {openEditModal && (
-                <UpdatePerfil
-                    isOpen={openEditModal}
-                    onClose={handleCloseEditModal}
-                    usuario={usuario}
-                />
+                isOwnProfile ? (
+                    <UpdatePerfil
+                        isOpen={openEditModal}
+                        onClose={handleCloseEditModal}
+                        usuario={usuario} />
+                ) : (
+                    <Register
+                        isOpen={openEditModal}
+                        onClose={handleCloseEditModal}
+                        usuario={usuario} />
+                )
             )}
         </div>
     )

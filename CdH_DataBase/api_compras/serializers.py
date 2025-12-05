@@ -14,7 +14,7 @@ class OrdenCompraSerializer(serializers.ModelSerializer):
 
 class DetalleCompraSerializer(serializers.ModelSerializer):
     class Meta:
-        models = DetalleCompra
+        model = DetalleCompra
         fields = [
             'id',
             'orden_compra',

@@ -8,7 +8,7 @@ from rest_framework import generics, status
 from .serializers import (
     CategoriaListSerializer, CategoriaDetailSerializer,
     ModalidadSerializer,ProductoModalidadSerializer,
-    ProductoListSerializer, ProductoDetailSerializer
+    ProductoSerializer
 )
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -102,15 +102,11 @@ class ModalidadDetailView(generics.RetrieveUpdateDestroyAPIView):
 # Productos
 class ProductoListCreateView(generics.ListCreateAPIView):
     queryset = Producto.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return ProductoListSerializer
-        return ProductoDetailSerializer
+    serializer_class = ProductoSerializer
 
 class ProductoDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Producto.objects.all()
-    serializer_class = ProductoDetailSerializer
+    serializer_class = ProductoSerializer
 
 
 # Modalidades de Productos

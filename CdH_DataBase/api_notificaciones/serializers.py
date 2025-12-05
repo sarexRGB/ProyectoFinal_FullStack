@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
-        models = Notificacion
+        model = Notificacion
         fields = [
             'id',
             'usuario',

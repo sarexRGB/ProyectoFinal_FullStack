@@ -3,9 +3,9 @@ from .serializers import VehiculoSerializer
 from rest_framework import generics
 
 class VehiculoListCreateView(generics.ListCreateAPIView):
-    queryset = Vehiculo
+    queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
 
 class VehiculoDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Vehiculo
+    queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer

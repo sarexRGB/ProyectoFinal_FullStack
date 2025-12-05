@@ -16,9 +16,9 @@ function Clientes() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [formData, setFormData] = useState({
         nombre: '',
-        apellido: '',
-        documento: '',
-        correo: '',
+        primer_apellido: '',
+        segundo_apellido: '',
+        email: '',
         telefono: ''
     });
     const [openDelete, setOpenDelete] = useState(false);
@@ -32,17 +32,17 @@ function Clientes() {
         if (selectedItem) {
             setFormData({
                 nombre: selectedItem.nombre || '',
-                apellido: selectedItem.apellido || '',
-                documento: selectedItem.documento || '',
-                correo: selectedItem.correo || '',
+                primer_apellido: selectedItem.primer_apellido || '',
+                segundo_apellido: selectedItem.segundo_apellido || '',
+                email: selectedItem.email || '',
                 telefono: selectedItem.telefono || ''
             });
         } else {
             setFormData({
                 nombre: '',
-                apellido: '',
-                documento: '',
-                correo: '',
+                primer_apellido: '',
+                segundo_apellido: '',
+                email: '',
                 telefono: ''
             });
         }
@@ -77,9 +77,9 @@ function Clientes() {
         setOpenModal(false);
         setFormData({
             nombre: '',
-            apellido: '',
-            documento: '',
-            correo: '',
+            primer_apellido: '',
+            segundo_apellido: '',
+            email: '',
             telefono: ''
         });
     };
@@ -128,8 +128,6 @@ function Clientes() {
                     <TableHeader>
                         <TableRow>
                             <TableHead className='text-lg font-semibold'>Nombre</TableHead>
-                            <TableHead className='text-lg font-semibold'>Apellido</TableHead>
-                            <TableHead className='text-lg font-semibold'>Documento</TableHead>
                             <TableHead className='text-lg font-semibold'>Correo</TableHead>
                             <TableHead className='text-lg font-semibold'>Telefono</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
@@ -138,10 +136,8 @@ function Clientes() {
                     <TableBody>
                         {clientes.map((cliente) => (
                             <TableRow key={cliente.id}>
-                                <TableCell className='text-sm-gray-300'>{cliente.nombre}</TableCell>
-                                <TableCell className='text-sm-gray-300'>{cliente.apellido}</TableCell>
-                                <TableCell className='text-sm-gray-300'>{cliente.documento}</TableCell>
-                                <TableCell className='text-sm-gray-300'>{cliente.correo}</TableCell>
+                                <TableCell className='text-sm-gray-300'>{cliente.nombre_completo}</TableCell>
+                                <TableCell className='text-sm-gray-300'>{cliente.email}</TableCell>
                                 <TableCell className='text-sm-gray-300'>{cliente.telefono}</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(cliente)}>
@@ -155,7 +151,7 @@ function Clientes() {
                         ))}
                         {clientes.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                                <TableCell colSpan={5} className="text-center py-4 text-gray-500">
                                     No hay clientes registrados
                                 </TableCell>
                             </TableRow>
@@ -179,17 +175,17 @@ function Clientes() {
                                 <Input id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Nombre" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="apellido">Apellido</Label>
-                                <Input id="apellido" name="apellido" value={formData.apellido} onChange={handleChange} placeholder="Apellido" />
+                                <Label htmlFor="primer_apellido">Primer Apellido</Label>
+                                <Input id="primer_apellido" name="primer_apellido" value={formData.primer_apellido} onChange={handleChange} placeholder="Primer Apellido" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="segundo_apellido">Segundo Apellido</Label>
+                                <Input id="segundo_apellido" name="segundo_apellido" value={formData.segundo_apellido} onChange={handleChange} placeholder="Segundo Apellido" />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="documento">Documento</Label>
-                            <Input id="documento" name="documento" value={formData.documento} onChange={handleChange} placeholder="DNI / Cédula" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="correo">Correo Electrónico</Label>
-                            <Input id="correo" name="correo" type="email" value={formData.correo} onChange={handleChange} placeholder="ejemplo@correo.com" />
+                            <Label htmlFor="email">Correo Electrónico</Label>
+                            <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="ejemplo@correo.com" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="telefono">Teléfono</Label>
@@ -208,7 +204,7 @@ function Clientes() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente al cliente {deletedItem?.nombre} {deletedItem?.apellido}.
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente al cliente {deletedItem?.nombre} {deletedItem?.primer_apellido}.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

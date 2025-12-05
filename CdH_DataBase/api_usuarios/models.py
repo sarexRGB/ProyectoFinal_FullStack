@@ -7,6 +7,7 @@ from django.dispatch import receiver
 class Usuario(AbstractUser):
     telefono = models.CharField(max_length=15, blank=True, null=True)
     fecha_ingreso = models.DateField(blank=True, null=True)
+    segundo_apellido = models.CharField(max_length=150, blank=True, null=True)
 
     def __str__(self):
         return self.username

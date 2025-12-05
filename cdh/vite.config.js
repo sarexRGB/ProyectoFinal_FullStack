@@ -9,8 +9,17 @@ const __dirname = path.resolve()
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias:{
+    alias: {
       '@': path.resolve(__dirname, 'src')
+    }
+  },
+  server: {
+    host: 'localhost',
+    port: 5174,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5174
     }
   }
 })

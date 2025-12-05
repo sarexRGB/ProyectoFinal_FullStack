@@ -205,8 +205,9 @@ function AgregarProductoPieza({
             const productoData = {
                 ...productoFormData,
                 imagen: imagenUrl,
-                precio_venta: selectedModalidades.venta ? productoFormData.precio_venta : null,
-                precio_alquiler: selectedModalidades.alquiler ? productoFormData.precio_alquiler : null,
+                precio_venta: selectedModalidades.venta && productoFormData.precio_venta ? parseFloat(productoFormData.precio_venta) : null,
+                precio_alquiler: selectedModalidades.alquiler && productoFormData.precio_alquiler ? parseFloat(productoFormData.precio_alquiler) : null,
+                categoria: parseInt(productoFormData.categoria),
             };
 
             let productoId;

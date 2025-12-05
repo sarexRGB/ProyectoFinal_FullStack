@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Public from '@/layout/Public.jsx';
+import AboutUsPage from '@/pages/AboutUsPage.jsx';
 import LandingPage from '@/pages/LandingPage.jsx';
+import CatalogosPublicPage from '@/pages/CatalogosPublicPage.jsx';
 import AdminLogin from '@/pages/AdminLogin.jsx';
 import PrivateLayout from '@/layout/PrivateLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
@@ -11,6 +13,7 @@ import AdminPersonal from '@/pages/AdminPersonal';
 import AdminPerfiles from '@/pages/AdminPerfiles';
 import AdminAlquiler from '@/pages/AdminAlquiler';
 import AdminVenta from '@/pages/AdminVenta';
+import DetallesPage from '@/pages/DetallesPage';
 import CatModProvPage from '@/pages/CatModProvPage';
 import Roles from '@/components/Roles';
 import AdminClientes from '@/pages/AdminClientes';
@@ -27,6 +30,8 @@ function Router() {
         {/* Rutas públicas */}
         <Route path="/" element={<Public />}>
           <Route index element={<LandingPage />} />
+          <Route path="about" element={<AboutUsPage />} />
+          <Route path="catalogos" element={<CatalogosPublicPage />} />
         </Route>
         <Route path="/login" element={<AdminLogin />} />
 
@@ -45,6 +50,7 @@ function Router() {
           <Route path='inventario' element={<AdminInventario />} />
           <Route path='inventario/config/:type' element={<CatModProvPage />} />
           <Route path='historial' element={<AdminHistorial />} />
+          <Route path='historial/detalles/:id' element={<DetallesPage />} />
           <Route path='clientes' element={<AdminClientes />} />
           <Route path='personal' element={<AdminPersonal />} />
           <Route path='roles' element={<Roles />} />

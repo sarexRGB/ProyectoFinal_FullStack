@@ -5,12 +5,16 @@ import Footer from '@/components/footer'
 
 function Public() {
   return (
-    <div>
-      <Navbar />
-      <main className='w-screen h-screen'>
-        <Outlet/>
+    <div className='flex flex-col min-h-screen'>
+      <div className='fixed top-0 left-0 right-0 z-50 bg-background shadow-md'>
+        <Navbar />
+      </div>
+
+      <main className='flex-grow w-full pt-30'>
+        <Outlet />
       </main>
-      <Footer/>
+
+      <Footer />
     </div>
   )
 }

@@ -76,25 +76,6 @@ function Agregar({
                                     placeholder='Ej: Bodega Principal'
                                 />
                             </div>
-                            <div>
-                                <Label htmlFor='bodega-direccion'>Dirección</Label>
-                                <Input
-                                    id='bodega-direccion'
-                                    value={formData.direccion || ''}
-                                    onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                                    placeholder='Dirección de la bodega'
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor='bodega-capacidad'>Capacidad</Label>
-                                <Input
-                                    id='bodega-capacidad'
-                                    type='number'
-                                    value={formData.capacidad || ''}
-                                    onChange={(e) => setFormData({ ...formData, capacidad: e.target.value })}
-                                    placeholder='Capacidad en m²'
-                                />
-                            </div>
                         </>
                     )}
 

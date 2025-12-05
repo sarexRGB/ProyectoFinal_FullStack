@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import { toast } from "sonner";
 
 export const loginRequest = async (username, password) => {
     const response = await axiosInstance.post("auth/login/", { username, password });
@@ -28,6 +29,7 @@ export const logoutRequest = async () => {
             await axiosInstance.post("auth/logout/", { refresh });
         } catch (err) {
             console.log("Error enviando logout al backend", err);
+            toast.error("Error enviando logout al backend");
         }
     }
     localStorage.clear();

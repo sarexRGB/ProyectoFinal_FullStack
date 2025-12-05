@@ -54,5 +54,5 @@ class MantenimientoPiezaListCreateView(generics.ListCreateAPIView):
     serializer_class = MantenimientoPiezaSerializer
 
 class MantenimientoPiezaDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = TipoMantenimiento.objects.all()
+    queryset = MantenimientoPieza.objects.all()
     serializer_class = MantenimientoPiezaSerializer

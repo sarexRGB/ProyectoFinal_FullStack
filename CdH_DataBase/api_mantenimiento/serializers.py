@@ -10,7 +10,7 @@ from rest_framework import serializers
 # Tipo de mantenimiento
 class TipoMantenimientoSerializer(serializers.ModelSerializer):
     class Meta:
-        models = TipoMantenimiento
+        model = TipoMantenimiento
         fields = [
             'id',
             'nombre',
@@ -21,7 +21,7 @@ class TipoMantenimientoSerializer(serializers.ModelSerializer):
 # Mantenimiento del producto
 class MantenimientoProductoListSerializer(serializers.ModelSerializer):
     class Meta:
-        models = MantenimientoProducto
+        model = MantenimientoProducto
         fields = [
             'id',
             'producto',
@@ -31,7 +31,7 @@ class MantenimientoProductoListSerializer(serializers.ModelSerializer):
 
 class MantenimientoProductoDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        models = MantenimientoProducto
+        model = MantenimientoProducto
         fields = [
             'id',
             'producto',
@@ -46,7 +46,7 @@ class MantenimientoProductoDetailSerializer(serializers.ModelSerializer):
 # Mantenimiento del vehículo
 class MantenimientoVehiculoListSerializer(serializers.ModelSerializer):
     class Meta:
-        models = MantenimientoVehiculo
+        model = MantenimientoVehiculo
         fields = [
             'id',
             'vehiculo',
@@ -56,7 +56,7 @@ class MantenimientoVehiculoListSerializer(serializers.ModelSerializer):
 
 class MantenimientoVehiculoDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        models = MantenimientoVehiculo
+        model = MantenimientoVehiculo
         fields = [
             'id',
             'vehiculo',
@@ -70,7 +70,7 @@ class MantenimientoVehiculoDetailSerializer(serializers.ModelSerializer):
 # Repuestos usados en reparación
 class MantenimientoPiezaSerializer(serializers.ModelSerializer):
     class Meta:
-        models = MantenimientoPieza
+        model = MantenimientoPieza
         fields = [
             'id',
             'mantenimiento_producto',

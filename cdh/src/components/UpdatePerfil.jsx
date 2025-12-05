@@ -15,6 +15,7 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
         username: '',
         first_name: '',
         last_name: '',
+        segundo_apellido: '',
         telefono: '',
         email: '',
     });
@@ -34,6 +35,7 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                         username: usuario.username || '',
                         first_name: usuario.first_name || '',
                         last_name: usuario.last_name || '',
+                        segundo_apellido: usuario.segundo_apellido || '',
                         telefono: usuario.telefono || '',
                         email: usuario.email || '',
                     });
@@ -144,7 +146,7 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
 
                 <div className='grid gap-4 py-4'>
                     <div className='space-y-1'>
-                        <Label className='text-sm text-muted-foreground'>Usuario (no se puede cambiar)</Label>
+                        <Label className='text-sm text-muted-foreground'>Usuario</Label>
                         <Input
                             placeholder='Usuario'
                             name='username'
@@ -153,13 +155,45 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                             className='bg-muted cursor-not-allowed'
                         />
                     </div>
-                    <Input placeholder='Nombre' name='first_name' value={formData.first_name} onChange={handleChange} />
-                    <Input placeholder='Apellidos' name='last_name' value={formData.last_name} onChange={handleChange} />
-                    <Input placeholder='Teléfono' name='telefono' value={formData.telefono} onChange={handleChange} />
-                    <Input placeholder='Correo' name='email' type='email' value={formData.email} onChange={handleChange} />
                     <div className='space-y-1'>
-                        <Label>Fecha de Ingreso</Label>
-                        <Input type='date' name='fecha_ingreso' value={formData.fecha_ingreso} onChange={handleChange} />
+                        <Label className='text-sm text-muted-foreground'>Nombre</Label>
+                        <Input placeholder='Nombre'
+                            name='first_name'
+                            value={formData.first_name}
+                            disabled
+                            className='bg-muted cursor-not-allowed' />
+                    </div>
+                    <div className='space-y-1'>
+                        <Label className='text-sm text-muted-foreground'>Primer Apellido</Label>
+                        <Input placeholder='Primer Apellido'
+                            name='last_name'
+                            value={formData.last_name}
+                            disabled
+                            className='bg-muted cursor-not-allowed' />
+                    </div>
+                    <div className='space-y-1'>
+                        <Label className='text-sm text-muted-foreground'>Segundo Apellido</Label>
+                        <Input placeholder='Segundo Apellido'
+                            name='segundo_apellido'
+                            value={formData.segundo_apellido}
+                            disabled
+                            className='bg-muted cursor-not-allowed' />
+                    </div>
+                    <div className='space-y-1'>
+                        <Label className='text-sm text-muted-foreground'>Teléfono</Label>
+                        <Input placeholder='Teléfono' name='telefono' value={formData.telefono} onChange={handleChange} />
+                    </div>
+                    <div className='space-y-1'>
+                        <Label className='text-sm text-muted-foreground'>Correo</Label>
+                        <Input placeholder='Correo' name='email' type='email' value={formData.email} onChange={handleChange} />
+                    </div>
+                    <div className='space-y-1'>
+                        <Label className='text-sm text-muted-foreground'>Fecha de Ingreso</Label>
+                        <Input type='date'
+                            name='fecha_ingreso'
+                            value={formData.fecha_ingreso}
+                            disabled
+                            className='bg-muted cursor-not-allowed' />
                     </div>
                 </div>
 
@@ -171,8 +205,8 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                                 <Checkbox
                                     id={`group-${group.id}`}
                                     checked={selectedGroups.includes(group.id)}
-                                    onCheckedChange={(checked) => handleGroupChange(group.id, checked)}
-                                    className='w-4 h-4'
+                                    disabled
+                                    className='bg-muted cursor-not-allowed w-4 h-4'
                                 />
                                 <Label htmlFor={`group-${group.id}`} className='font-medium'>{group.group_name}</Label>
                             </div>
@@ -238,7 +272,8 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                                                             <Textarea
                                                                 placeholder='Observaciones'
                                                                 value={roleData[group.id]?.observaciones || ''}
-                                                                onChange={(e) => handleRoleDataChange(group.id, 'observaciones', e.target.value)}
+                                                                disabled
+                                                                className='bg-muted cursor-not-allowed'
                                                             />
                                                         </div>
                                                     </>
@@ -276,7 +311,8 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                                                             <Textarea
                                                                 placeholder='Observaciones'
                                                                 value={roleData[group.id]?.observaciones || ''}
-                                                                onChange={(e) => handleRoleDataChange(group.id, 'observaciones', e.target.value)}
+                                                                disabled
+                                                                className='bg-muted cursor-not-allowed'
                                                             />
                                                         </div>
                                                     </>
@@ -289,7 +325,8 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                                                             <Textarea
                                                                 placeholder='Observaciones'
                                                                 value={roleData[group.id]?.observaciones || ''}
-                                                                onChange={(e) => handleRoleDataChange(group.id, 'observaciones', e.target.value)}
+                                                                disabled
+                                                                className='bg-muted cursor-not-allowed'
                                                             />
                                                         </div>
                                                     </>

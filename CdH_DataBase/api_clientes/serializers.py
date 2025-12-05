@@ -9,11 +9,12 @@ class ClienteSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'nombre',
-            'apellido',
+            'primer_apellido',
+            'segundo_apellido',
             'nombre_completo',
             'telefono',
-            'correo'
+            'email'
         ]
 
     def get_nombre_completo(self, obj):
-        return f"{obj.nombre} {obj.apellido}".strip()
+        return f"{obj.nombre} {obj.primer_apellido} {obj.segundo_apellido or ''}".strip()
