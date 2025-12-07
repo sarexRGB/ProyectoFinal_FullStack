@@ -168,6 +168,17 @@ function Historial() {
         }
     }
 
+    const handleEdit = (item) => {
+        setSelectedItem(item)
+        setModalType(historialType === 'alquileres' ? 'alquiler' : 'venta')
+        setOpenModal(true)
+    }
+
+    const handleDeleteClick = (item) => {
+        setDeletedItem(item)
+        setOpenDelete(true)
+    }
+
     const confirmDelete = async () => {
         try {
             if (historialType === 'alquileres') {
@@ -241,6 +252,7 @@ function Historial() {
                                     <TableHead>Fecha Fin</TableHead>
                                     <TableHead>Estado</TableHead>
                                     <TableHead>Total</TableHead>
+                                    <TableHead>Acciones</TableHead>
                                 </>
                             }
                             {historialType === 'ventas' &&
@@ -248,6 +260,7 @@ function Historial() {
                                     <TableHead>Cliente</TableHead>
                                     <TableHead>Fecha Venta</TableHead>
                                     <TableHead>Total</TableHead>
+                                    <TableHead>Acciones</TableHead>
                                 </>
                             }
                             {historialType === 'entregas' &&
@@ -257,6 +270,7 @@ function Historial() {
                                     <TableHead>Fecha Salida</TableHead>
                                     <TableHead>Fecha Retorno</TableHead>
                                     <TableHead>Estado</TableHead>
+                                    <TableHead>Acciones</TableHead>
                                 </>
                             }
                         </TableRow>
@@ -274,24 +288,24 @@ function Historial() {
                                     <TableCell>₡{alquiler.total}</TableCell>
                                     <TableCell className='text-right'>
                                         <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(item);
-                                        }}>
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteClick(item);
-                                        }}
-                                    >
-                                        <Trash className="h-4 w-4 text-red-500" />
-                                    </Button>
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(alquiler);
+                                            }}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteClick(alquiler);
+                                            }}
+                                        >
+                                            <Trash className="h-4 w-4 text-red-500" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -306,24 +320,24 @@ function Historial() {
                                     <TableCell>₡{venta.total}</TableCell>
                                     <TableCell>
                                         <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(item);
-                                        }}>
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteClick(item);
-                                        }}
-                                    >
-                                        <Trash className="h-4 w-4 text-red-500" />
-                                    </Button>
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(venta);
+                                            }}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteClick(venta);
+                                            }}
+                                        >
+                                            <Trash className="h-4 w-4 text-red-500" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -338,12 +352,12 @@ function Historial() {
                                     <TableCell>{entrega.estado}</TableCell>
                                     <TableCell>
                                         <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(item);
-                                        }}>
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(entrega);
+                                            }}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
                                     </TableCell>
@@ -355,7 +369,7 @@ function Historial() {
             </div>
 
             <Dialog open={openModal} onOpenChange={setOpenModal}>
-                <DialogContent>
+                <DialogContent className='max-w-4xl max-h-screen overflow-y-auto'>
                     <DialogHeader>
                         <DialogTitle>{selectedItem ? 'Editar' : 'Agregar'} {modalType === historialType}</DialogTitle>
                         <DialogDescription>

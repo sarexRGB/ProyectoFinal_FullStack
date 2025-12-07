@@ -10,11 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { getClientes } from '@/services/ClientesServices'
-import { createAlquiler, updateAlquiler, createDetalleAlquiler, updateDetalleAlquiler, getDetallesAlquiler, getEntregas, createEntrega, updateEntrega } from '@/services/AlquilerServices'
-import { createVenta, updateVenta, createDetalleVenta, updateDetalleVenta, getDetallesPorVenta } from '@/services/VentaServices'
+import { createAlquiler, updateAlquiler, getDetallesAlquiler, getEntregas, createEntrega, updateEntrega, createDetalleAlquiler, updateDetalleAlquiler } from '@/services/AlquilerServices'
+import { createVenta, updateVenta, getDetallesPorVenta, createDetalleVenta, updateDetalleVenta } from '@/services/VentaServices'
 import { getChoferes } from '@/services/UsuariosServices'
 import { getVehiculos } from '@/services/VehiculoServices'
 import { Plus, Edit, Trash } from 'lucide-react'
+import AddEditDetalle from '@/components/AddEditDetalle'
 
 function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
     const [clientes, setClientes] = useState([])
@@ -70,6 +71,30 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
             fetchEntregaExistente()
         }
     }, [initialData])
+
+    // Calcular total automáticamente cuando cambian los detalles o las fechas (para alquileres)
+    useEffect(() => {
+        let total = 0
+
+        if (type === 'alquiler' && formData.fecha_inicio && formData.fecha_fin) {
+            // Calcular días de alquiler
+            const fechaInicio = new Date(formData.fecha_inicio)
+            const fechaFin = new Date(formData.fecha_fin)
+            const diasAlquiler = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24))
+
+            // Total = suma de (subtotal * días)
+            total = detalles.reduce((sum, detalle) => {
+                return sum + (parseFloat(detalle.subtotal || 0) * diasAlquiler)
+            }, 0)
+        } else {
+            // Para ventas, el total es la suma de subtotales
+            total = detalles.reduce((sum, detalle) => {
+                return sum + parseFloat(detalle.subtotal || 0)
+            }, 0)
+        }
+
+        setFormData(prev => ({ ...prev, total: total.toFixed(2) }))
+    }, [detalles, formData.fecha_inicio, formData.fecha_fin, type])
 
     const fetchDetallesExistentes = async () => {
         try {
@@ -268,18 +293,98 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
         }
 
         try {
-            let alquilerVentaId = initialData?.id
+            let response
 
-            const dataToSubmit = {
-                ...formData,
-                detalles,
-                ...(realizarEntrega && { entrega: entregaFormData })
+            if (type === 'alquiler') {
+                const alquilerData = {
+                    cliente: parseInt(formData.cliente),
+                    fecha_inicio: formData.fecha_inicio,
+                    fecha_fin: formData.fecha_fin,
+                    total: parseFloat(formData.total),
+                    estado: formData.estado,
+                    contrato: formData.contrato || null
+                }
+
+                if (initialData) {
+                    response = await updateAlquiler(initialData.id, alquilerData)
+                } else {
+                    response = await createAlquiler(alquilerData)
+                }
+
+                // Guardar detalles
+                for (const detalle of detalles) {
+                    const detalleData = {
+                        alquiler: response.data.id,
+                        producto: parseInt(detalle.producto),
+                        cantidad: parseFloat(detalle.cantidad),
+                        precio_diario: parseFloat(detalle.precio_diario || detalle.precio_unitario)
+                    }
+
+                    if (detalle.id) {
+                        await updateDetalleAlquiler(detalle.id, detalleData)
+                    } else {
+                        await createDetalleAlquiler(detalleData)
+                    }
+                }
+
+                // Guardar entrega si corresponde
+                if (realizarEntrega) {
+                    const entregaData = {
+                        alquiler: response.data.id,
+                        chofer: parseInt(entregaFormData.chofer),
+                        vehiculo: parseInt(entregaFormData.vehiculo),
+                        fecha_salida: entregaFormData.fecha_salida,
+                        fecha_retorno: entregaFormData.fecha_retorno,
+                        estado: entregaFormData.estado
+                    }
+
+                    if (initialData?.entrega_id) {
+                        await updateEntrega(initialData.entrega_id, entregaData)
+                    } else {
+                        await createEntrega(entregaData)
+                    }
+                }
+
+                toast.success(initialData ? 'Alquiler actualizado correctamente' : 'Alquiler creado correctamente')
+            } else {
+                // Venta
+                const ventaData = {
+                    cliente: parseInt(formData.cliente),
+                    fecha: formData.fecha,
+                    total: parseFloat(formData.total)
+                }
+
+                if (initialData) {
+                    response = await updateVenta(initialData.id, ventaData)
+                } else {
+                    response = await createVenta(ventaData)
+                }
+
+                // Guardar detalles
+                for (const detalle of detalles) {
+                    const detalleData = {
+                        venta: response.data.id,
+                        producto: parseInt(detalle.producto),
+                        cantidad: parseFloat(detalle.cantidad),
+                        precio_unitario: parseFloat(detalle.precio_unitario),
+                        subtotal: parseFloat(detalle.subtotal)
+                    }
+
+                    if (detalle.id) {
+                        await updateDetalleVenta(detalle.id, detalleData)
+                    } else {
+                        await createDetalleVenta(detalleData)
+                    }
+                }
+
+                toast.success(initialData ? 'Venta actualizada correctamente' : 'Venta creada correctamente')
             }
 
-            console.log('Datos a enviar:', dataToSubmit)
+            onSuccess()
+            onClose()
         } catch (error) {
-            console.error('Error al enviar los datos:', error)
-            toast.error('Error al enviar los datos')
+            console.error('Error al guardar:', error)
+            toast.error('Error al guardar los datos: ' + (error.response?.data?.message || error.message))
         }
     }
 
@@ -302,8 +407,9 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
         const producto = productos.find((producto) => producto.id === id)
         return producto ? `${producto.nombre}` : ''
     }
+
     return (
-        <form className='space-y-4 max-h-screen overflow-y-auto'>
+        <form onSubmit={handleSubmit} className='space-y-4 max-h-screen overflow-y-auto'>
             <div>
                 <Label htmlFor='cliente'>Cliente</Label>
                 <Select
@@ -424,7 +530,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                         <TableBody>
                             {detalles.length > 0 ? (
                                 detalles.map((detalle, index) => (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                         <TableCell>{detalle.producto?.nombre || detalle.producto_nombre || 'N/A'}</TableCell>
                                         <TableCell>{detalle.cantidad}</TableCell>
                                         {type === 'alquiler' && (
@@ -483,7 +589,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                     <div>
                         <Checkbox
                             checked={clienteRetira}
-                            onCheckedChange={ (checked) => {
+                            onCheckedChange={(checked) => {
                                 setClienteRetira(checked)
                                 if (checked) {
                                     setRealizarEntrega(false)
@@ -510,8 +616,8 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                         <div>
                                             <Label>Chofer</Label>
                                             <Select
-                                                value={entregaFormData.chofer? entregaFormData.chofer.toString(): ''}
-                                                onValueChange={(value) => setEntregaFormData(prev => ({ ...prev, chofer: value}))}
+                                                value={entregaFormData.chofer ? entregaFormData.chofer.toString() : ''}
+                                                onValueChange={(value) => setEntregaFormData(prev => ({ ...prev, chofer: value }))}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Seleccionar chofer' />
@@ -520,7 +626,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                                     {choferes.map((chofer) => (
                                                         <SelectItem
                                                             key={chofer.id}
-                                                            value={chofer.id}
+                                                            value={chofer.id.toString()}
                                                         >
                                                             {choferNombre(chofer.id)}
                                                         </SelectItem>
@@ -531,8 +637,8 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                         <div>
                                             <Label>Vehículo</Label>
                                             <Select
-                                                value={entregaFormData.vehiculo? entregaFormData.vehiculo.toString(): ''}
-                                                onValueChange={(value) => setEntregaFormData(prev => ({ ...prev, vehiculo: value}))}
+                                                value={entregaFormData.vehiculo ? entregaFormData.vehiculo.toString() : ''}
+                                                onValueChange={(value) => setEntregaFormData(prev => ({ ...prev, vehiculo: value }))}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Seleccionar vehículo' />
@@ -541,7 +647,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                                     {vehiculos.map((vehiculo) => (
                                                         <SelectItem
                                                             key={vehiculo.id}
-                                                            value={vehiculo.id}
+                                                            value={vehiculo.id.toString()}
                                                         >
                                                             {vehiculoNombre(vehiculo.id)}
                                                         </SelectItem>
@@ -551,25 +657,25 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                         </div>
                                         <div>
                                             <Label>Fecha de salida</Label>
-                                            <Input 
-                                                type='date' 
+                                            <Input
+                                                type='date'
                                                 value={entregaFormData.fecha_salida}
-                                                onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_salida: e.target.value}))}
+                                                onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_salida: e.target.value }))}
                                             />
                                         </div>
                                         <div>
                                             <Label>Fecha de retorno</Label>
-                                            <Input 
-                                                type='date' 
+                                            <Input
+                                                type='date'
                                                 value={entregaFormData.fecha_retorno}
-                                                onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_retorno: e.target.value}))}
+                                                onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_retorno: e.target.value }))}
                                             />
                                         </div>
                                         <div>
                                             <Label>Estado</Label>
                                             <Select
                                                 value={entregaFormData.estado}
-                                                onValueChange={(value) => setEntregaFormData(prev => ({ ...prev, estado: value}))}
+                                                onValueChange={(value) => setEntregaFormData(prev => ({ ...prev, estado: value }))}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Seleccionar estado' />
@@ -601,7 +707,31 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
 
             <Dialog open={openDetalleModal} onOpenChange={setOpenDetalleModal}>
                 <DialogContent className='max-w-2xl'>
-                    
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingDetalle ? 'Editar' : 'Agregar'} Producto
+                        </DialogTitle>
+                    </DialogHeader>
+                    <AddEditDetalle
+                        type={type}
+                        initialData={editingDetalle}
+                        onClose={() => setOpenDetalleModal(false)}
+                        onSuccess={(nuevoDetalle) => {
+                            if (detalleIndex !== null) {
+                                const nuevosDetalles = [...detalles]
+                                nuevosDetalles[detalleIndex] = nuevoDetalle
+                                setDetalles(nuevosDetalles)
+                            } else {
+                                setDetalles([...detalles, nuevoDetalle])
+                            }
+                            const nuevoTotal = [...detalles, nuevoDetalle].reduce(
+                                (sum, det) => sum + parseFloat(det.subtotal || 0),
+                                0
+                            )
+                            setFormData(prev => ({ ...prev, total: nuevoTotal.toFixed(2) }))
+                            setOpenDetalleModal(false)
+                        }}
+                    />
                 </DialogContent>
             </Dialog>
 

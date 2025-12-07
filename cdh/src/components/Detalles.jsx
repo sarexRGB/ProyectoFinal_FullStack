@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { getAlquiler, getDetallesAlquiler, deleteDetalleAlquiler } from '@/services/AlquilerServices'
 import { getVenta, getDetallesPorVenta, deleteDetalleVenta } from '@/services/VentaServices'
 import { getProducto } from '@/services/ProductosServices'
-import EditDetalle from './EditDetalle'
+import AddEditDetalle from '@/components/AddEditDetalle'
 
 function Detalles() {
     const { id } = useParams()
