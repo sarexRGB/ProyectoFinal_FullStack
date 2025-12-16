@@ -1,0 +1,10 @@
+Librerías y Utilidades necesarias para el funcionamiento de proyecto
+npm install tailwindcss @tailwindcss/vite
+npx shadcn@latest add all
+npm i next-themes
+npm install @radix-ui/themes
+pip install django-filter
+pip install Pillow
+npm install axios
+pip install ggshield
+npm install date-fns --save
