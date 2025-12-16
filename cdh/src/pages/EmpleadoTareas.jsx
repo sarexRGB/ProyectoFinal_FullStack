@@ -1,10 +1,9 @@
 import React from 'react'
+import Tareas from '@/components/Tareas'
 
 function EmpleadoTareas() {
   return (
-    <div>
-        
-    </div>
+    <Tareas />
   )
 }
 

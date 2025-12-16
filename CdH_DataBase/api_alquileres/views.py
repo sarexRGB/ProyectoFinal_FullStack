@@ -2,13 +2,15 @@ from .models import (
     Alquiler,
     DetalleAlquiler,
     Devolucion,
-    Entrega
+    Entrega,
+    RetiroCliente
 )
 from .serializers import (
     AlquilerSerializer,
     DevolucionSerializer,
     EntregaSerializer,
-    DetalleAlquilerSerializer
+    DetalleAlquilerSerializer,
+    RetiroClienteSerializer
 )
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -42,8 +44,14 @@ class AlquilerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Detalle del alquiler
 class DetalleAlquilerListCreateView(generics.ListCreateAPIView):
-    queryset = DetalleAlquiler.objects.all()
     serializer_class = DetalleAlquilerSerializer
+
+    def get_queryset(self):
+        queryset = DetalleAlquiler.objects.all()
+        alquiler_id = self.request.query_params.get('alquiler_id')
+        if alquiler_id:
+            queryset = queryset.filter(alquiler_id=alquiler_id)
+        return queryset
 
 class DetalleAlquilerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DetalleAlquiler.objects.all()
@@ -51,8 +59,14 @@ class DetalleAlquilerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Devolución del alquiler
 class DevolucionListCreateView(generics.ListCreateAPIView):
-    queryset = Devolucion.objects.all()
     serializer_class = DevolucionSerializer
+
+    def get_queryset(self):
+        queryset = Devolucion.objects.all()
+        alquiler_id = self.request.query_params.get('alquiler_id')
+        if alquiler_id:
+            queryset = queryset.filter(alquiler_id=alquiler_id)
+        return queryset
 
 class DevolucionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Devolucion.objects.all()
@@ -66,3 +80,12 @@ class EntregaListCreateView(generics.ListCreateAPIView):
 class EntregaDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Entrega.objects.all()
     serializer_class = EntregaSerializer
+
+# Retiros de Cliente
+class RetiroClienteListCreateView(generics.ListCreateAPIView):
+    queryset = RetiroCliente.objects.all()
+    serializer_class = RetiroClienteSerializer
+
+class RetiroClienteDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = RetiroCliente.objects.all()
+    serializer_class = RetiroClienteSerializer

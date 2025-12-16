@@ -16,6 +16,8 @@ function AddEditDetalle({ type, initialData, onClose, onSuccess }) {
         cantidad: '',
         precio_unitario: '',
         precio_diario: '',
+        descuento_tipo: 'NINGUNO',
+        descuento_valor: '0',
         subtotal: ''
     })
 
@@ -27,23 +29,59 @@ function AddEditDetalle({ type, initialData, onClose, onSuccess }) {
                 cantidad: initialData.cantidad || '',
                 precio_unitario: initialData.precio_unitario || '',
                 precio_diario: initialData.precio_diario || '',
+                descuento_tipo: initialData.descuento_tipo || 'NINGUNO',
+                descuento_valor: initialData.descuento_valor || '0',
                 subtotal: initialData.subtotal || ''
             })
         }
     }, [initialData])
 
-    // Calcular subtotal automáticamente
+    useEffect(() => {
+        if (formData.producto && productos.length > 0) {
+            const selectedProduct = productos.find(p => p.id === parseInt(formData.producto))
+            if (selectedProduct && !initialData) {
+                if (type === 'alquiler' && selectedProduct.precio_alquiler) {
+                    setFormData(prev => ({ ...prev, precio_diario: selectedProduct.precio_alquiler }))
+                } else if (type === 'venta' && selectedProduct.precio_venta) {
+                    setFormData(prev => ({ ...prev, precio_unitario: selectedProduct.precio_venta }))
+                }
+            }
+        }
+    }, [formData.producto, productos, type, initialData])
+
     useEffect(() => {
         const cantidad = parseFloat(formData.cantidad) || 0
-        const precioUnitario = parseFloat(formData.precio_unitario) || 0
-        const subtotal = cantidad * precioUnitario
-        setFormData(prev => ({ ...prev, subtotal: subtotal.toFixed(2) }))
-    }, [formData.cantidad, formData.precio_unitario])
+        const precio = type === 'alquiler'
+            ? parseFloat(formData.precio_diario) || 0
+            : parseFloat(formData.precio_unitario) || 0
+
+        let subtotal = cantidad * precio
+
+        if (formData.descuento_tipo && formData.descuento_valor) {
+            const descuentoValor = parseFloat(formData.descuento_valor) || 0
+            if (formData.descuento_tipo === 'PORCENTAJE') {
+                subtotal = subtotal * (1 - descuentoValor / 100)
+            } else if (formData.descuento_tipo === 'FIJO') {
+                subtotal = subtotal - descuentoValor
+            }
+        }
+
+        setFormData(prev => ({ ...prev, subtotal: Math.max(0, subtotal).toFixed(2) }))
+    }, [formData.cantidad, formData.precio_unitario, formData.precio_diario, formData.descuento_tipo, formData.descuento_valor, type])
 
     const fetchProductos = async () => {
         try {
             const response = await getProductos()
-            setProductos(response.data)
+            const allProductos = response.data
+            const filteredProductos = allProductos.filter(producto => {
+                if (type === 'alquiler') {
+                    return producto.precio_alquiler && producto.precio_alquiler > 0
+                } else if (type === 'venta') {
+                    return producto.precio_venta && producto.precio_venta > 0
+                }
+                return true
+            })
+            setProductos(filteredProductos)
         } catch (error) {
             console.error("Error fetching products:", error)
         }
@@ -66,8 +104,11 @@ function AddEditDetalle({ type, initialData, onClose, onSuccess }) {
             return
         }
 
-        if (!formData.cantidad || !formData.precio_unitario) {
-            toast.error('Cantidad y Precio unitario son obligatorios')
+        const isAlquiler = type === 'alquiler'
+        const precioValido = isAlquiler ? formData.precio_diario : formData.precio_unitario
+
+        if (!formData.cantidad || !precioValido) {
+            toast.error(`Cantidad y ${isAlquiler ? 'Precio diario' : 'Precio unitario'} son obligatorios`)
             return
         }
 
@@ -75,37 +116,37 @@ function AddEditDetalle({ type, initialData, onClose, onSuccess }) {
             const dataToSubmit = {
                 producto: parseInt(formData.producto),
                 cantidad: parseFloat(formData.cantidad),
-                precio_unitario: parseFloat(formData.precio_unitario),
-                precio_diario: parseFloat(formData.precio_diario || formData.precio_unitario),
+                precio_unitario: parseFloat(formData.precio_unitario) || 0,
+                precio_diario: parseFloat(formData.precio_diario) || 0,
+                descuento_tipo: formData.descuento_tipo || 'NINGUNO',
+                descuento_valor: parseFloat(formData.descuento_valor) || 0,
                 subtotal: parseFloat(formData.subtotal),
                 producto_nombre: productos.find(p => p.id === parseInt(formData.producto))?.nombre
             }
 
-            // Solo guardar en BD si estamos editando un detalle existente (que ya tiene un alquiler/venta asociado)
             if (initialData?.id && initialData?.alquiler) {
-                // Editar detalle de alquiler existente
                 const backendData = {
                     alquiler: initialData.alquiler,
                     producto: dataToSubmit.producto,
                     cantidad: dataToSubmit.cantidad,
-                    precio_diario: dataToSubmit.precio_diario
+                    precio_diario: dataToSubmit.precio_diario,
+                    descuento_tipo: dataToSubmit.descuento_tipo,
+                    descuento_valor: dataToSubmit.descuento_valor
                 }
                 await updateDetalleAlquiler(initialData.id, backendData)
                 toast.success('Detalle actualizado correctamente')
             } else if (initialData?.id && initialData?.venta) {
-                // Editar detalle de venta existente
                 const backendData = {
                     venta: initialData.venta,
                     producto: dataToSubmit.producto,
                     cantidad: dataToSubmit.cantidad,
                     precio_unitario: dataToSubmit.precio_unitario,
-                    subtotal: dataToSubmit.subtotal
+                    descuento_tipo: dataToSubmit.descuento_tipo,
+                    descuento_valor: dataToSubmit.descuento_valor
                 }
                 await updateDetalleVenta(initialData.id, backendData)
                 toast.success('Detalle actualizado correctamente')
             }
-            // Si no hay initialData.id, solo retornamos los datos sin guardar en BD
-            // Los detalles se guardarán cuando se cree el alquiler/venta completo
 
             onSuccess(dataToSubmit)
             onClose()
@@ -152,19 +193,56 @@ function AddEditDetalle({ type, initialData, onClose, onSuccess }) {
                     />
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor='precio_unitario'>Precio Unitario</Label>
+                    <Label htmlFor={type === 'alquiler' ? 'precio_diario' : 'precio_unitario'}>
+                        {type === 'alquiler' ? 'Precio Diario' : 'Precio Unitario'}
+                    </Label>
                     <Input
-                        id='precio_unitario'
-                        name='precio_unitario'
+                        id={type === 'alquiler' ? 'precio_diario' : 'precio_unitario'}
+                        name={type === 'alquiler' ? 'precio_diario' : 'precio_unitario'}
                         type='number'
                         step='0.01'
                         min='0'
-                        value={formData.precio_unitario}
+                        value={type === 'alquiler' ? formData.precio_diario : formData.precio_unitario}
                         onChange={handleChange}
                         required
                     />
                 </div>
             </div>
+
+            <div className='space-y-2'>
+                <Label htmlFor='descuento_tipo'>Descuento</Label>
+                <Select
+                    value={formData.descuento_tipo}
+                    onValueChange={(value) => handleSelectChange('descuento_tipo', value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder='Tipo de descuento' />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value='NINGUNO'>Sin descuento</SelectItem>
+                        <SelectItem value='PORCENTAJE'>Porcentaje (%)</SelectItem>
+                        <SelectItem value='FIJO'>Monto fijo (₡)</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {formData.descuento_tipo !== 'NINGUNO' && (
+                <div className='space-y-2'>
+                    <Label htmlFor='descuento_valor'>
+                        {formData.descuento_tipo === 'PORCENTAJE' ? 'Porcentaje de descuento' : 'Monto de descuento'}
+                    </Label>
+                    <Input
+                        id='descuento_valor'
+                        name='descuento_valor'
+                        type='number'
+                        step={formData.descuento_tipo === 'PORCENTAJE' ? '0.01' : '1'}
+                        min='0'
+                        max={formData.descuento_tipo === 'PORCENTAJE' ? '100' : undefined}
+                        value={formData.descuento_valor}
+                        onChange={handleChange}
+                    />
+                </div>
+            )}
 
             <div className='space-y-2'>
                 <Label htmlFor='subtotal'>Subtotal</Label>
@@ -175,7 +253,7 @@ function AddEditDetalle({ type, initialData, onClose, onSuccess }) {
                     step='0.01'
                     value={formData.subtotal}
                     disabled
-                    className='bg-gray-100'
+                    className='bg-gray-100 font-bold'
                 />
             </div>
 

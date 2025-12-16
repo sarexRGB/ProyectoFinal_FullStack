@@ -4,6 +4,7 @@ from .views import (
     DetalleAlquilerListCreateView, DetalleAlquilerDetailView,
     DevolucionListCreateView, DevolucionDetailView,
     EntregaListCreateView, EntregaDetailView,
+    RetiroClienteListCreateView, RetiroClienteDetailView,
     UploadArchivo
 )
 
@@ -23,6 +24,10 @@ urlpatterns = [
     # Entregas
     path('entrega/', EntregaListCreateView.as_view(), name='entrega-list'),
     path('entrega/<int:pk>/', EntregaDetailView.as_view(), name='entrega-detail'),
+
+    # Retiros de Cliente
+    path('retiro_cliente/', RetiroClienteListCreateView.as_view(), name='retirocliente-list'),
+    path('retiro_cliente/<int:pk>/', RetiroClienteDetailView.as_view(), name='retirocliente-detail'),
 
     # Cargar archivo
     path("upload/", UploadArchivo.as_view()),

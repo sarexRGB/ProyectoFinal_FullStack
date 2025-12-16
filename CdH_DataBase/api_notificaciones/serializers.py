@@ -8,5 +8,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
             'id',
             'usuario',
             'mensaje',
-            'fecha'
+            'fecha',
+            'completada',
+            'fecha_realizacion'
         ]

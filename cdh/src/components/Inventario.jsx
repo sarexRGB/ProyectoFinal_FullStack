@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -20,7 +20,12 @@ import AddVehiculo from '@/components/AddVehiculo'
 
 function Inventario() {
     const navigate = useNavigate();
-    const [inventoryType, setInventoryType] = useState('productos');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const inventoryType = searchParams.get('tab') || 'productos';
+
+    const setInventoryType = (type) => {
+        setSearchParams({ tab: type });
+    };
     const [inventario, setInventario] = useState([]);
     const [productos, setProductos] = useState([]);
     const [inventarioPiezas, setInventarioPiezas] = useState([]);
@@ -29,6 +34,7 @@ function Inventario() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [openDelete, setOpenDelete] = useState(false);
     const [deletedItem, setDeletedItem] = useState(null);
+    const [modalityFilter, setModalityFilter] = useState('todos');
 
     useEffect(() => {
         fetchInventario();
@@ -58,7 +64,7 @@ function Inventario() {
     const fetchInventario = async () => {
         try {
             const response = await getInventario();
-            setInventario(response.data);
+            setInventario(response.data.results || response.data);
         } catch (error) {
             console.error("Error al obtener inventario:", error);
         }
@@ -67,7 +73,7 @@ function Inventario() {
     const fetchInventarioPiezas = async () => {
         try {
             const response = await getInventarioPieza();
-            setInventarioPiezas(response.data);
+            setInventarioPiezas(response.data.results || response.data);
         } catch (error) {
             console.error("Error al obtener inventario de piezas:", error);
         }
@@ -136,7 +142,6 @@ function Inventario() {
         return { text: 'Stock normal', color: 'text-green-600' };
     };
 
-    // Combinar productos con su información de inventario
     const getCombinedInventoryData = () => {
 
         if (inventoryType === 'vehiculos') {
@@ -147,48 +152,78 @@ function Inventario() {
             return inventarioPiezas;
         }
 
-        // Para productos: combinar catálogo de productos con registros de inventario
-        const productosConInventario = productos.map(producto => {
-            // Buscar todos los registros de inventario para este producto
-            const inventariosDelProducto = inventario.filter(inv => inv.producto?.id === producto.id);
+        const productosConInventario = productos
+            .filter(producto => {
+                if (modalityFilter === 'todos') return true;
 
-            // Si tiene inventario, devolver cada registro
-            if (inventariosDelProducto.length > 0) {
-                return inventariosDelProducto;
-            }
+                const tieneVenta = producto.precio_venta && producto.precio_venta > 0;
+                const tieneAlquiler = producto.precio_alquiler && producto.precio_alquiler > 0;
 
-            // Si no tiene inventario, crear un registro "virtual" para mostrarlo
-            return [{
-                id: `virtual-${producto.id}`,
-                producto: producto,
-                bodega: null,
-                ubicacion: '-',
-                stock: null,
-                minimo_stock: 0,
-                isVirtual: true
-            }];
-        });
+                if (modalityFilter === 'venta') return tieneVenta && !tieneAlquiler;
+                if (modalityFilter === 'alquiler') return tieneAlquiler && !tieneVenta;
 
-        // Aplanar el array de arrays
+                return true;
+            })
+            .map(producto => {
+                const inventariosDelProducto = inventario.filter(inv => (inv.producto?.id || inv.producto) == producto.id);
+                if (inventariosDelProducto.length > 0) {
+                    return inventariosDelProducto.map(inv => ({
+                        ...inv,
+                        producto: producto
+                    }));
+                }
+
+                return [{
+                    id: `virtual-${producto.id}`,
+                    producto: producto,
+                    bodega: null,
+                    stock_disponible: null,
+                    stock_alquilado: 0,
+                    minimo_stock: 0,
+                    isVirtual: true
+                }];
+            });
+
         return productosConInventario.flat();
     };
 
     const displayData = getCombinedInventoryData();
 
+    const handleRowClick = (item) => {
+        if (inventoryType === 'vehiculos') return;
+
+        let itemId;
+        if (inventoryType === 'productos') {
+            itemId = item.producto?.id || item.id;
+            navigate(`info/producto/${itemId}`);
+        } else if (inventoryType === 'piezas') {
+            itemId = item.pieza?.id || item.id;
+            navigate(`info/pieza/${itemId}`);
+        }
+    }
+
     return (
         <div className='p-6'>
             <div className='flex justify-between items-center mb-4'>
                 <div className='flex items-center gap-4'>
-                    <Select value={inventoryType} onValueChange={setInventoryType}>
-                        <SelectTrigger className='w-[200px]'>
-                            <SelectValue placeholder='Tipo de inventario' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='productos'>Productos</SelectItem>
-                            <SelectItem value='piezas'>Piezas de Repuesto</SelectItem>
-                            <SelectItem value='vehiculos'>Vehiculos</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <h2 className='text-2xl font-bold'>
+                        {inventoryType === 'productos' ? 'Productos' :
+                            inventoryType === 'piezas' ? 'Piezas de Repuesto' :
+                                'Vehículos'}
+                    </h2>
+
+                    {inventoryType === 'productos' && (
+                        <Select value={modalityFilter} onValueChange={setModalityFilter}>
+                            <SelectTrigger className='w-[180px]'>
+                                <SelectValue placeholder='Filtrar por modalidad' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='todos'>Todos</SelectItem>
+                                <SelectItem value='venta'>Solo Venta</SelectItem>
+                                <SelectItem value='alquiler'>Solo Alquiler</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 <div className='flex gap-2'>
@@ -219,12 +254,13 @@ function Inventario() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className='text-lg font-semibold'>{inventoryType === 'productos' ? 'Producto' : 'Piezas'}</TableHead>
+
                         {(inventoryType === 'productos' || inventoryType === 'piezas') && (
                             <>
+                                <TableHead className='text-lg font-semibold'>{inventoryType === 'productos' ? 'Producto' : 'Piezas'}</TableHead>
                                 <TableHead className='text-lg font-semibold'>Bodega</TableHead>
-                                <TableHead className='text-lg font-semibold'>Ubicación</TableHead>
-                                <TableHead className='text-lg font-semibold'>Stock</TableHead>
+                                {inventoryType === 'productos' && <TableHead className='text-lg font-semibold'>Modalidad</TableHead>}
+                                <TableHead className='text-lg font-semibold'>Stock Disponible</TableHead>
                                 <TableHead className='text-lg font-semibold'>Stock Mínimo</TableHead>
                             </>
                         )}
@@ -232,7 +268,7 @@ function Inventario() {
                         {(inventoryType === 'productos' || inventoryType === 'piezas') && (
                             <>
                                 <TableHead className='text-lg font-semibold'>Estado</TableHead>
-                                <TableHead className='text-lg font-semibold'>Acciones</TableHead>
+                                {inventoryType === 'productos' && <TableHead className='text-lg font-semibold'>Alquilado</TableHead>}
                             </>
                         )}
                         {inventoryType === 'vehiculos' && (
@@ -255,20 +291,28 @@ function Inventario() {
                         </TableRow>
                     ) : (
                         displayData.map((item) => {
-                            const stockStatus = getStockStatus(item.stock, item.minimo_stock);
+                            const stockStatus = getStockStatus(inventoryType === 'productos' ? item.stock_disponible : item.stock, item.minimo_stock);
                             const isVirtual = item.isVirtual;
 
                             return (
-                                <TableRow key={item.id} className={isVirtual ? '' : ''}>
+                                <TableRow
+                                    key={item.id}
+                                    className={
+                                        inventoryType !== 'vehiculos' && !isVirtual
+                                            ? 'cursor-pointer hover:bg-gray-50'
+                                            : ''
+                                    }
+                                    onClick={() => handleRowClick(item)}
+                                >
                                     {inventoryType === 'vehiculos' ? (
                                         <>
                                             <TableCell>{item.placa || 'N/A'}</TableCell>
                                             <TableCell>{item.modelo || 'N/A'}</TableCell>
                                             <TableCell>
                                                 <span className={`text-xs px-2 py-1 rounded ${item.estado === 'disponible' ? 'bg-green-100 text-green-800' :
-                                                        item.estado === 'en_uso' ? 'bg-blue-100 text-blue-800' :
-                                                            item.estado === 'mantenimiento' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-gray-100 text-gray-800'
+                                                    item.estado === 'en_uso' ? 'bg-blue-100 text-blue-800' :
+                                                        item.estado === 'mantenimiento' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-gray-100 text-gray-800'
                                                     }`}>
                                                     {item.estado || 'N/A'}
                                                 </span>
@@ -293,28 +337,40 @@ function Inventario() {
                                             <TableCell>
                                                 {inventoryType === 'productos'
                                                     ? (item.producto?.nombre || 'N/A')
-                                                    : (item.pieza?.nombre || 'N/A')
+                                                    : (item.pieza_nombre || item.pieza?.nombre || 'N/A')
                                                 }
                                             </TableCell>
                                             <TableCell>
                                                 {isVirtual ? (
                                                     <span className='text-gray-400 italic'>Sin asignar</span>
                                                 ) : (
-                                                    item.bodega?.nombre || 'N/A'
+                                                    item.bodega_nombre || item.bodega?.nombre || 'N/A'
                                                 )}
                                             </TableCell>
-                                            <TableCell>
-                                                {isVirtual ? (
-                                                    <span className='text-gray-400'>-</span>
-                                                ) : (
-                                                    item.ubicacion || '-'
-                                                )}
-                                            </TableCell>
+
+                                            {inventoryType === 'productos' && (
+                                                <TableCell>
+                                                    {(() => {
+                                                        const tieneVenta = item.producto?.precio_venta && item.producto.precio_venta > 0
+                                                        const tieneAlquiler = item.producto?.precio_alquiler && item.producto.precio_alquiler > 0
+
+                                                        if (tieneVenta && tieneAlquiler) {
+                                                            return <span className='text-xs px-2 py-1 rounded bg-purple-100 text-purple-800'>Ambos</span>
+                                                        } else if (tieneAlquiler) {
+                                                            return <span className='text-xs px-2 py-1 rounded bg-blue-100 text-blue-800'>Alquiler</span>
+                                                        } else if (tieneVenta) {
+                                                            return <span className='text-xs px-2 py-1 rounded bg-green-100 text-green-800'>Venta</span>
+                                                        }
+                                                        return <span className='text-gray-400'>N/A</span>
+                                                    })()}
+                                                </TableCell>
+                                            )}
+
                                             <TableCell className='font-semibold'>
                                                 {isVirtual ? (
                                                     <span className='text-gray-400'>-</span>
                                                 ) : (
-                                                    item.stock
+                                                    inventoryType === 'productos' ? item.stock_disponible : item.stock
                                                 )}
                                             </TableCell>
                                             <TableCell>
@@ -332,35 +388,17 @@ function Inventario() {
                                                 </TableCell>
                                             )}
                                             <TableCell className={stockStatus.color}>{stockStatus.text}</TableCell>
-                                            <TableCell className='flex gap-2'>
-                                                {isVirtual ? (
-                                                    <Button
-                                                        size='sm'
-                                                        variant='default'
-                                                        onClick={() => {
-                                                            setSelectedItem({ producto: item.producto });
-                                                            setModalType('producto');
-                                                        }}
-                                                    >
-                                                        <Plus size={16} className='mr-1' /> Agregar a Inventario
-                                                    </Button>
-                                                ) : (
-                                                    <>
-                                                        <Button size='sm' variant='outline' onClick={() => handleEdit(item)}>
-                                                            <Edit size={16} />
-                                                        </Button>
-                                                        <Button size='sm'
-                                                            variant='destructive'
-                                                            onClick={() => {
-                                                                setDeletedItem(item);
-                                                                setOpenDelete(true)
-                                                            }}
-                                                        >
-                                                            <Trash size={16} />
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </TableCell>
+                                            {inventoryType === 'productos' && (
+                                                <TableCell>
+                                                    {isVirtual ? (
+                                                        <span className='text-gray-400'>-</span>
+                                                    ) : (item.producto?.precio_alquiler && item.producto.precio_alquiler > 0) ? (
+                                                        item.stock_alquilado || 0
+                                                    ) : (
+                                                        <span className='text-gray-400'>-</span>
+                                                    )}
+                                                </TableCell>
+                                            )}
                                         </>
                                     )}
 

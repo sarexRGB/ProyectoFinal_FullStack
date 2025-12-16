@@ -1,11 +1,19 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import { loginRequest, getProfile, logoutRequest } from "./authServices";
 
 export const AuthContext = createContext();
 
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+};
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [roles, setRoles] = useState([]); // array de roles
+    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

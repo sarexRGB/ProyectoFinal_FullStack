@@ -39,9 +39,9 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
                         first_name: usuario.first_name || '',
                         last_name: usuario.last_name || '',
                         segundo_apellido: usuario.segundo_apellido || '',
-                        telefono: usuario.telefono || '',
+                        telefono: usuario.telefono || '+506 ',
                         email: usuario.email || '',
-                        fecha_ingreso: usuario.fecha_ingreso ? usuario.fecha_ingreso.split('T')[0] : '',
+                        fecha_ingreso: usuario.fecha_ingreso ? usuario.fecha_ingreso : '',
                         password: '',
                     });
 
@@ -51,7 +51,7 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
                         setRoleData(usuario.role_data);
                     }
                 } else {
-                    setFormData({ username: '', first_name: '', last_name: '', segundo_apellido: '', telefono: '', email: '', password: '' });
+                    setFormData({ username: '', first_name: '', last_name: '', segundo_apellido: '', telefono: '+506 ', email: '', password: '' });
                     setSelectedGroups([]);
                     setRoleData({});
                 }
@@ -63,7 +63,14 @@ function Register({ isOpen, onClose, usuario, isOwnProfile = false }) {
     }, [usuario]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === 'telefono') {
+            if (!value.startsWith('+506 ')) {
+                setFormData({ ...formData, [name]: '+506 ' + value.replace(/^\+506\s*/, '') });
+                return;
+            }
+        }
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleRoleDataChange = (groupId, field, value) => {

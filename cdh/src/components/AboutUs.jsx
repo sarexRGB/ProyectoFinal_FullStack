@@ -11,7 +11,7 @@ function AboutUs() {
     const currentTheme = theme === "system" ? systemTheme : theme;
     const isDark = currentTheme === "dark";
     return (
-        <div className='px-10 py-10 my-10'>
+        <div className='px-10 py-10'>
             <header className='text-center py-10 pb-16 border-b-2 border-border mb-10'>
                 <h1 className='text-3xl md:text-4xl font-bold mb-15 text-primary'>
                     Acerca de nosotros
@@ -112,22 +112,24 @@ function AboutUs() {
                 </div>
             </section>
             <Separator />
-            <section className="flex flex-col mt-5">
-                <h2 className="text-3xl md:text-4xl font-bold text-primary">¿Listo para empezar tu proyecto?</h2>
-                <div className="flex flex-col gap-4 mt-10">
-                    <p className="text-popoverforeground text-xl md:text-2xl font-semibold">
-                        Visítanos o contactanos hoy mismo.
-                    </p>
-                    <p className="text-popoverforeground">
-                        Estamos ubicados en:
-                        <strong> Esparza, al lado de la central 06 de taxis de San Juan Chiquito.</strong>
-                    </p>
-                    <p className="text-popoverforeground">
-                        Teléfono: <strong>+506 8888 8888</strong>
-                    </p>
-                    <p className="text-popoverforeground">
-                        Envianos un correo a: <strong>centralherr@gmail.com</strong>
-                    </p>
+            <section className='mt-5 flex items-center justify-between'>
+                <div className='flex flex-col'>
+                    <h2 className="text-3xl md:text-4xl font-bold text-primary">¿Listo para empezar tu proyecto?</h2>
+                    <div className="flex flex-col gap-4 mt-10">
+                        <p className="text-popoverforeground text-xl md:text-2xl font-semibold">
+                            Visítanos o contactanos hoy mismo.
+                        </p>
+                        <p className="text-popoverforeground">
+                            Estamos ubicados en:
+                            <strong> Esparza, al lado de la central 06 de taxis de San Juan Chiquito.</strong>
+                        </p>
+                        <p className="text-popoverforeground">
+                            Teléfono: <strong>+506 8888 8888</strong>
+                        </p>
+                        <p className="text-popoverforeground">
+                            Envianos un correo a: <strong>centralherr@gmail.com</strong>
+                        </p>
+                    </div>
                 </div>
             </section>
         </div>

@@ -11,6 +11,5 @@ class PagoSerializer(serializers.ModelSerializer):
             'monto',
             'fecha_pago',
             'venta',
-            'alquiler',
-            'orden_compra'
+            'alquiler'
         ]

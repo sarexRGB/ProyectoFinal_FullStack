@@ -41,12 +41,12 @@ function AddPieza({ isOpen, onClose, item, inventarioItem }) {
 
         if (inventarioItem) {
             setInventarioData({
-                bodega: inventarioItem.bodega?.id || '',
+                bodega: (inventarioItem.bodega && typeof inventarioItem.bodega === 'object' ? inventarioItem.bodega.id : inventarioItem.bodega) || '',
                 ubicacion: inventarioItem.ubicacion || '',
                 stock: inventarioItem.stock || '',
                 minimo_stock: inventarioItem.minimo_stock || '',
                 origen: inventarioItem.origen || 'PROVEEDOR',
-                proveedor: inventarioItem.proveedor?.id || '',
+                proveedor: (inventarioItem.proveedor && typeof inventarioItem.proveedor === 'object' ? inventarioItem.proveedor.id : inventarioItem.proveedor) || '',
             });
         }
     }, [item, inventarioItem]);
@@ -100,11 +100,10 @@ function AddPieza({ isOpen, onClose, item, inventarioItem }) {
                     minimo_stock: parseInt(inventarioData.minimo_stock) || 0,
                     origen: inventarioData.origen,
                     proveedor: inventarioData.origen === 'PROVEEDOR' ? inventarioData.proveedor : null,
-                    fecha_actualizacion: new Date().toISOString(),
                     activo: true,
                 };
 
-                if (inventarioItem) {
+                if (inventarioItem && !inventarioItem.isVirtual) {
                     await updateInventarioPieza(inventarioItem.id, inventarioPiezaPayload);
                 } else {
                     await createInventarioPieza(inventarioPiezaPayload);
@@ -158,29 +157,20 @@ function AddPieza({ isOpen, onClose, item, inventarioItem }) {
                                 />
                             </div>
 
-                            <div>
-                                <Label htmlFor='numero_parte'>Número de Parte</Label>
-                                <Input
-                                    id='numero_parte'
-                                    name='numero_parte'
-                                    value={piezaFormData.numero_parte}
-                                    onChange={handlePiezaChange}
-                                    placeholder='Ej: CAT-123456'
-                                />
-                            </div>
-
-                            <div>
-                                <Label htmlFor='precio'>Precio *</Label>
-                                <Input
-                                    id='precio'
-                                    name='precio'
-                                    type='number'
-                                    step='0.01'
-                                    value={piezaFormData.precio}
-                                    onChange={handlePiezaChange}
-                                    placeholder='0.00'
-                                />
-                            </div>
+                            {inventarioData.origen === 'PROVEEDOR' && (
+                                <div>
+                                    <Label htmlFor='precio'>Precio *</Label>
+                                    <Input
+                                        id='precio'
+                                        name='precio'
+                                        type='number'
+                                        step='0.01'
+                                        value={piezaFormData.precio}
+                                        onChange={handlePiezaChange}
+                                        placeholder='0.00'
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 

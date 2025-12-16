@@ -101,6 +101,7 @@ class DespachoDatos(models.Model):
 class Asistencia(models.Model):
     class Estado(models.TextChoices):
         PRESENTE = 'Presente', 'El empleado asistió normalmente a su jornada laboral.'
+        TARDE = 'Tarde', 'El empleado asistió pero llegó tarde.'
         AUSENTE = 'Ausente', 'El empleado no asistió y no presentó justificación válida.'
         JUSTIFICADO = 'Justificado', 'El empleado no asistió, pero presentó una justificación(cita médica, incapacidad, permiso especial).'
         VACACIONES = 'Vacaciones', 'El empleado se encuentra en periodo de vacaciones autorizado'
@@ -108,8 +109,8 @@ class Asistencia(models.Model):
 
     empleado = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     fecha = models.DateField()
-    hora_entrada = models.TimeField()
-    hora_salida = models.TimeField()
+    hora_entrada = models.TimeField(blank=True, null=True)
+    hora_salida = models.TimeField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PRESENTE)
 
     def __str__(self):

@@ -1,8 +1,8 @@
 import axiosInstance from "./axiosInstance";
 
 // Productos
-export const getProductos = () => axiosInstance.get("productos/producto/");
-export const getProducto = (id) => axiosInstance.get(`productos/producto/${id}/`);
+export const getProductos = () => axiosInstance.get("productos/producto/", { params: { t: Date.now() } });
+export const getProducto = (id) => axiosInstance.get(`productos/producto/${id}/`, { params: { t: Date.now() } });
 export const createProducto = (data) => axiosInstance.post("productos/producto/", data);
 export const updateProducto = (id, data) => axiosInstance.put(`productos/producto/${id}/`, data);
 export const deleteProducto = (id) => axiosInstance.delete(`productos/producto/${id}/`);
@@ -33,6 +33,6 @@ export const uploadArchivo = (file) => {
     const formData = new FormData();
     formData.append("file", file);
     return axiosInstance.post("productos/upload/", formData, {
-        headers: {"Content-Type": "multipart/form-data",},
+        headers: { "Content-Type": "multipart/form-data", },
     });
 };

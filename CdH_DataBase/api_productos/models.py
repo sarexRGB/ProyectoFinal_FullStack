@@ -29,6 +29,7 @@ class Producto(models.Model):
         INACTIVO = 'INACTIVO', 'Inactivo'
 
     nombre = models.CharField(max_length=150)
+    codigo = models.CharField(max_length=50, unique=True, null=True, blank=True)
     descripcion = models.TextField()
     precio_venta = models.DecimalField(max_digits=9, decimal_places=2, blank=True, null=True)
     precio_alquiler = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
@@ -46,6 +47,11 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def save(self, *args, **kwargs):
+        if self.nombre:
+            self.nombre = self.nombre.upper()
+        super(Producto, self).save(*args, **kwargs)
 
 class ProductoModalidad(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)

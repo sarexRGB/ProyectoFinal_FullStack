@@ -15,6 +15,7 @@ function PrivateNavbar() {
         '/admin/venta' : 'Catálogo de Venta',
         '/empleado' : 'Dashboard',
         '/empleado/tareas' : 'Tareas',
+        '/empleado/calendario' : 'Calendario de Entregas',
         '/empleado/perfil' : 'Perfil',
     }
 

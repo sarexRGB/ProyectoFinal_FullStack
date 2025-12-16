@@ -26,7 +26,7 @@ class MantenimientoProductoListCreateView(generics.ListCreateAPIView):
     queryset = MantenimientoProducto.objects.all()
 
     def get_serializer_class(self):
-        if self.reques.method == 'GET':
+        if self.request.method == 'GET':
             return MantenimientoProductoListSerializer
         return MantenimientoProductoDetailSerializer
 
@@ -40,7 +40,7 @@ class MantenimientoVehiculoListCreateView(generics.ListCreateAPIView):
     queryset = MantenimientoVehiculo.objects.all()
 
     def get_serializer_class(self):
-        if self.reques.method == 'GET':
+        if self.request.method == 'GET':
             return MantenimientoVehiculoListSerializer
         return MantenimientoVehiculoDetailSerializer
 

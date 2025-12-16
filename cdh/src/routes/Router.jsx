@@ -8,6 +8,7 @@ import AdminLogin from '@/pages/AdminLogin.jsx';
 import PrivateLayout from '@/layout/PrivateLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
 import AdminInventario from '@/pages/AdminInventario';
+import InfoDetalladaPage from '@/pages/InfoDetalladaPage';
 import AdminHistorial from '@/pages/AdminHistorial';
 import AdminPersonal from '@/pages/AdminPersonal';
 import AdminPerfiles from '@/pages/AdminPerfiles';
@@ -15,13 +16,17 @@ import AdminAlquiler from '@/pages/AdminAlquiler';
 import AdminVenta from '@/pages/AdminVenta';
 import DetallesPage from '@/pages/DetallesPage';
 import CatModProvPage from '@/pages/CatModProvPage';
-import Roles from '@/components/Roles';
+import AdminRoles from '@/pages/AdminRoles';
 import AdminClientes from '@/pages/AdminClientes';
+import AdminMantenimientos from '@/pages/AdminMantenimientos';
 import EmpleadoDashboard from '@/pages/EmpleadoDashboard.jsx';
 import EmpleadoPerfil from '@/pages/EmpleadoPerfil.jsx';
 import EmpleadoTareas from '@/pages/EmpleadoTareas.jsx';
+import EmpleadoCalendario from '@/pages/EmpleadoCalendario.jsx';
 import ProtectedRoute from '@/components/ProtectedRouter';
 import RoleRoute from '@/components/RoleRouter';
+import AdminAsistencias from '@/pages/AdminAsistencias';
+import AdminHistorialAsistencias from '@/pages/AdminHistorialAsistencias';
 
 function Router() {
   return (
@@ -48,12 +53,16 @@ function Router() {
         >
           <Route index element={<AdminDashboard />} />
           <Route path='inventario' element={<AdminInventario />} />
+          <Route path='inventario/info/:tipo/:id' element={<InfoDetalladaPage />} />
           <Route path='inventario/config/:type' element={<CatModProvPage />} />
           <Route path='historial' element={<AdminHistorial />} />
           <Route path='historial/detalles/:id' element={<DetallesPage />} />
           <Route path='clientes' element={<AdminClientes />} />
+          <Route path='asistencias' element={<AdminAsistencias />} />
+          <Route path='asistencias/usuario/:id' element={<AdminHistorialAsistencias />} />
+          <Route path='mantenimientos' element={<AdminMantenimientos />} />
           <Route path='personal' element={<AdminPersonal />} />
-          <Route path='roles' element={<Roles />} />
+          <Route path='roles' element={<AdminRoles />} />
           <Route path='personal/:id' element={<AdminPerfiles />} />
           <Route path='alquiler' element={<AdminAlquiler />} />
           <Route path='venta' element={<AdminVenta />} />
@@ -73,6 +82,7 @@ function Router() {
           <Route index element={<EmpleadoDashboard />} />
           <Route path="perfil" element={<EmpleadoPerfil />} />
           <Route path="tareas" element={<EmpleadoTareas />} />
+          <Route path="calendario" element={<EmpleadoCalendario />} />
         </Route>
       </Routes>
     </BrowserRouter>

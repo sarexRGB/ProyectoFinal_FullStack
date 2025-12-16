@@ -6,32 +6,37 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Plus, Edit, Trash } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getVentas, deleteVenta, getDetallesPorVenta, updateDetalleVenta } from '@/services/VentaServices'
-import { getAlquileres, deleteAlquiler, getDetallesAlquiler, updateDetalleAlquiler, getEntregas } from '@/services/AlquilerServices'
+import { getAlquileres, deleteAlquiler, getDetallesAlquiler, updateDetalleAlquiler, getEntregas, getRetirosCliente, getDevoluciones } from '@/services/AlquilerServices'
 import { getChoferes } from '@/services/UsuariosServices'
 import { getVehiculos } from '@/services/VehiculoServices'
 import { getClientes } from '@/services/ClientesServices'
 import AddEditRenSaleDeliver from './AddEditRenSaleDeliver'
+import EditEntrega from './EditEntrega'
 import { format } from 'date-fns'
 const result = format(new Date(), 'MM/dd/yyyy')
 
 function Historial() {
     const navigate = useNavigate()
-    const [historialType, setHistorialType] = useState('alquileres')
+    const [searchParams] = useSearchParams()
+    const historialType = searchParams.get('tab') || 'alquileres'
     const [openModal, setOpenModal] = useState(false)
     const [modalType, setModalType] = useState('alquiler')
     const [selectedItem, setSelectedItem] = useState(null)
     const [deletedItem, setDeletedItem] = useState(null)
     const [alquileres, setAlquileres] = useState([])
-    const [detallesAlquiler, setDetallesAlquiler] = useState([])
     const [ventas, setVentas] = useState([])
-    const [detallesVenta, setDetallesVenta] = useState([])
     const [clientes, setClientes] = useState([])
     const [entregas, setEntregas] = useState([])
+    const [devoluciones, setDevoluciones] = useState([])
+    const [retirosCliente, setRetirosCliente] = useState([])
+    const [deliveryType, setDeliveryType] = useState('chofer')
     const [choferes, setChoferes] = useState([])
     const [vehiculos, setVehiculos] = useState([])
     const [openDelete, setOpenDelete] = useState(false)
+    const [openEditEntrega, setOpenEditEntrega] = useState(false)
+    const [selectedEntrega, setSelectedEntrega] = useState(null)
 
     const fetchAlquileres = async () => {
         try {
@@ -40,16 +45,6 @@ function Historial() {
         } catch (error) {
             console.log('Error al obtener alquileres', error)
             toast.error('Error al obtener alquileres')
-        }
-    }
-
-    const fetchDetallesAlquiler = async () => {
-        try {
-            const response = await getDetallesAlquiler()
-            setDetallesAlquiler(response.data)
-        } catch (error) {
-            console.log('Error al obtener detalles de alquiler', error)
-            toast.error('Error al obtener detalles de alquiler')
         }
     }
 
@@ -63,16 +58,6 @@ function Historial() {
         }
     }
 
-    const fetchDetallesVenta = async () => {
-        try {
-            const response = await getDetallesPorVenta()
-            setDetallesVenta(response.data)
-        } catch (error) {
-            console.log('Error al obtener detalles de venta', error)
-            toast.error('Error al obtener detalles de venta')
-        }
-    }
-
     const fetchEntregas = async () => {
         try {
             const response = await getEntregas()
@@ -80,6 +65,26 @@ function Historial() {
         } catch (error) {
             console.log('Error al obtener entregas', error)
             toast.error('Error al obtener entregas')
+        }
+    }
+
+    const fetchRetirosCliente = async () => {
+        try {
+            const response = await getRetirosCliente()
+            setRetirosCliente(response.data)
+        } catch (error) {
+            console.log('Error al obtener retiros de cliente', error)
+            toast.error('Error al obtener retiros de cliente')
+        }
+    }
+
+    const fetchDevoluciones = async () => {
+        try {
+            const response = await getDevoluciones()
+            setDevoluciones(response.data)
+        } catch (error) {
+            console.log('Error al obtener devoluciones', error)
+            toast.error('Error al obtener devoluciones')
         }
     }
 
@@ -115,23 +120,25 @@ function Historial() {
 
     useEffect(() => {
         fetchAlquileres()
-        fetchDetallesAlquiler()
-        fetchVentas()
-        fetchDetallesVenta()
+        fetchVentas()   
         fetchClientes()
         fetchEntregas()
+        fetchRetirosCliente()
+        fetchDevoluciones()
         fetchChoferes()
         fetchVehiculos()
     }, [])
 
-    const cliente = (id) => {
+    const cliente = (id, item) => {
+        if (item && item.cliente_nombre) return item.cliente_nombre;
+
         const cliente = clientes.find((cliente) => cliente.id === id)
-        return cliente ? `${cliente.nombre} ${cliente.primer_apellido} ${cliente.segundo_apellido}` : ''
+        return cliente ? `${cliente.nombre} ${cliente.primer_apellido} ${cliente.segundo_apellido}` : 'Cliente Desconocido'
     }
 
     const chofer = (id) => {
-        const chofer = choferes.find((chofer) => chofer.id === id)
-        return chofer ? `${chofer.nombre} ${chofer.primer_apellido} ${chofer.segundo_apellido}` : ''
+        const chofer = choferes.find((chofer) => chofer.id === id || chofer.empleado === id)
+        return chofer ? chofer.empleado_nombre : ''
     }
 
     const vehiculo = (id) => {
@@ -139,12 +146,22 @@ function Historial() {
         return vehiculo ? `${vehiculo.modelo} ${vehiculo.placa}` : ''
     }
 
+    const formatDateTime = (dateTimeString) => {
+        if (!dateTimeString) return 'N/A'
+        const [datePart, timePart] = dateTimeString.split('T')
+        if (!datePart || !timePart) return dateTimeString
+
+        const [year, month, day] = datePart.split('-')
+        const [hours, minutes] = timePart.split(':')
+
+        return `${day}/${month}/${year} ${hours}:${minutes}`
+    }
+
     const handleCloseModal = () => {
         setOpenModal(false)
         setSelectedItem(null)
         if (modalType === 'alquiler') {
             fetchAlquileres()
-            fetchDetallesAlquiler()
         } else if (modalType === 'venta') {
             fetchVentas()
             fetchDetallesVenta()
@@ -157,7 +174,6 @@ function Historial() {
     const handleSuccess = () => {
         if (modalType === 'alquiler') {
             fetchAlquileres()
-            fetchDetallesAlquiler()
         } else if (modalType === 'venta') {
             fetchVentas()
             fetchDetallesVenta()
@@ -190,7 +206,6 @@ function Historial() {
             setDeletedItem(null)
             if (historialType === 'alquileres') {
                 fetchAlquileres()
-                fetchDetallesAlquiler()
             } else if (historialType === 'ventas') {
                 fetchVentas()
                 fetchDetallesVenta()
@@ -205,18 +220,11 @@ function Historial() {
     return (
         <div className='p-6'>
             <div className='flex justify-between items-center mb-4'>
-                <div className='flex items-center gap-4'>
-                    <Select value={historialType} onValueChange={setHistorialType}>
-                        <SelectTrigger className='w-3xs'>
-                            <SelectValue placeholder='Tipo de historial' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="alquileres">Alquileres</SelectItem>
-                            <SelectItem value="ventas">Ventas</SelectItem>
-                            <SelectItem value="entregas">Entregas</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                <h2 className='text-2xl font-bold'>
+                    {historialType === 'alquileres' ? 'Alquileres' :
+                        historialType === 'ventas' ? 'Ventas' :
+                            'Entregas'}
+                </h2>
 
                 <div>
                     {historialType === 'alquileres' &&
@@ -238,6 +246,18 @@ function Historial() {
                             <Plus size={16} className='mr-2' />
                             Agregar venta
                         </Button>
+                    }
+                    {historialType === 'entregas' &&
+                        <Select value={deliveryType} onValueChange={setDeliveryType}>
+                            <SelectTrigger className='w-[200px]'>
+                                <SelectValue placeholder='Tipo de entrega' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='chofer'>Entregas con Chofer</SelectItem>
+                                <SelectItem value='devoluciones'>Devoluciones</SelectItem>
+                                <SelectItem value='cliente'>Retiros por Cliente</SelectItem>
+                            </SelectContent>
+                        </Select>
                     }
                 </div>
             </div>
@@ -265,12 +285,32 @@ function Historial() {
                             }
                             {historialType === 'entregas' &&
                                 <>
-                                    <TableHead>Chofer</TableHead>
-                                    <TableHead>Vehiculo</TableHead>
-                                    <TableHead>Fecha Salida</TableHead>
-                                    <TableHead>Fecha Retorno</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                    <TableHead>Acciones</TableHead>
+                                    {deliveryType === 'chofer' ? (
+                                        <>
+                                            <TableHead>Chofer</TableHead>
+                                            <TableHead>Vehiculo</TableHead>
+                                            <TableHead>Fecha Entrega</TableHead>
+                                            <TableHead>Fecha Devolucion</TableHead>
+                                            <TableHead>Estado</TableHead>
+                                            <TableHead>Acciones</TableHead>
+                                        </>
+                                    ) : deliveryType === 'devoluciones' ? (
+                                        <>
+                                            <TableHead>Chofer</TableHead>
+                                            <TableHead>Vehículo</TableHead>
+                                            <TableHead>Fecha Devolución</TableHead>
+                                            <TableHead>Observaciones</TableHead>
+                                            <TableHead>Acciones</TableHead>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TableHead>Cliente</TableHead>
+                                            <TableHead>Empleado</TableHead>
+                                            <TableHead>Fecha Retiro</TableHead>
+                                            <TableHead>Tipo</TableHead>
+                                            <TableHead>Acciones</TableHead>
+                                        </>
+                                    )}
                                 </>
                             }
                         </TableRow>
@@ -278,14 +318,19 @@ function Historial() {
                     <TableBody>
                         {historialType === 'alquileres' &&
                             alquileres.map((alquiler) => (
-                                <TableRow key={alquiler.id}>
+                                <TableRow
+                                    key={alquiler.id}
+                                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    onClick={() => navigate(`/admin/historial/detalles/${alquiler.id}?type=alquiler`)}
+                                >
                                     <TableCell>
-                                        {cliente(alquiler.cliente)}
+                                        {cliente(alquiler.cliente, alquiler)}
                                     </TableCell>
                                     <TableCell>{alquiler.fecha_inicio}</TableCell>
                                     <TableCell>{alquiler.fecha_fin}</TableCell>
                                     <TableCell>{alquiler.estado}</TableCell>
-                                    <TableCell>₡{alquiler.total}</TableCell>
+                                    <TableCell>
+                                        ₡{alquiler.total}</TableCell>
                                     <TableCell className='text-right'>
                                         <Button
                                             variant="ghost"
@@ -312,9 +357,13 @@ function Historial() {
                         }
                         {historialType === 'ventas' &&
                             ventas.map((venta) => (
-                                <TableRow key={venta.id}>
+                                <TableRow
+                                    key={venta.id}
+                                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    onClick={() => navigate(`/admin/historial/detalles/${venta.id}?type=venta`)}
+                                >
                                     <TableCell>
-                                        {cliente(venta.cliente)}
+                                        {cliente(venta.cliente, venta)}
                                     </TableCell>
                                     <TableCell>{venta.fecha_venta}</TableCell>
                                     <TableCell>₡{venta.total}</TableCell>
@@ -342,13 +391,17 @@ function Historial() {
                                 </TableRow>
                             ))
                         }
-                        {historialType === 'entregas' &&
+                        {historialType === 'entregas' && deliveryType === 'chofer' &&
                             entregas.map((entrega) => (
-                                <TableRow key={entrega.id}>
+                                <TableRow
+                                    key={entrega.id}
+                                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    onClick={() => navigate(`/admin/historial/detalles/${entrega.alquiler}?type=alquiler`)}
+                                >
                                     <TableCell>{chofer(entrega.chofer)}</TableCell>
                                     <TableCell>{vehiculo(entrega.vehiculo)}</TableCell>
-                                    <TableCell>{entrega.fecha_salida}</TableCell>
-                                    <TableCell>{entrega.fecha_retorno}</TableCell>
+                                    <TableCell>{formatDateTime(entrega.fecha_salida)}</TableCell>
+                                    <TableCell>{formatDateTime(entrega.fecha_retorno)}</TableCell>
                                     <TableCell>{entrega.estado}</TableCell>
                                     <TableCell>
                                         <Button
@@ -356,10 +409,69 @@ function Historial() {
                                             size="icon"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleEdit(entrega);
+                                                setSelectedEntrega(entrega);
+                                                setOpenEditEntrega(true);
                                             }}>
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        }
+                        {historialType === 'entregas' && deliveryType === 'cliente' &&
+                            retirosCliente.map((retiro) => (
+                                <TableRow
+                                    key={retiro.id}
+                                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                        const tipo = retiro.alquiler ? 'alquiler' : 'venta'
+                                        const id = retiro.alquiler || retiro.venta
+                                        navigate(`/admin/historial/detalles/${id}?type=${tipo}`)
+                                    }}
+                                >
+                                    <TableCell>{cliente(retiro.cliente, retiro)}</TableCell>
+                                    <TableCell>
+                                        {retiro.empleado_nombre} {retiro.empleado_apellido}
+                                    </TableCell>
+                                    <TableCell>
+                                        {new Date(retiro.fecha_retiro).toLocaleString()}
+                                    </TableCell>
+                                    <TableCell>
+                                        {retiro.alquiler ? 'Alquiler' : 'Venta'}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                            }}>
+                                            Ver {retiro.alquiler ? 'Alquiler' : 'Venta'}
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+
+                        }
+                        {historialType === 'entregas' && deliveryType === 'devoluciones' &&
+                            devoluciones.map((devolucion) => (
+                                <TableRow
+                                    key={devolucion.id}
+                                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    onClick={() => navigate(`/admin/historial/detalles/${devolucion.alquiler}?type=alquiler`)}
+                                >
+                                    <TableCell>{chofer(devolucion.chofer)}</TableCell>
+                                    <TableCell>{vehiculo(devolucion.vehiculo)}</TableCell>
+                                    <TableCell>{formatDateTime(devolucion.fecha)}</TableCell>
+                                    <TableCell>{devolucion.observaciones || 'Sin observaciones'}</TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                            }}>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -369,7 +481,7 @@ function Historial() {
             </div>
 
             <Dialog open={openModal} onOpenChange={setOpenModal}>
-                <DialogContent className='max-w-4xl max-h-screen overflow-y-auto'>
+                <DialogContent className='max-w-4xl max-h-screen overflow-y-auto min-w-3xl'>
                     <DialogHeader>
                         <DialogTitle>{selectedItem ? 'Editar' : 'Agregar'} {modalType === historialType}</DialogTitle>
                         <DialogDescription>
@@ -399,7 +511,26 @@ function Historial() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+
+            <Dialog open={openEditEntrega} onOpenChange={setOpenEditEntrega}>
+                <DialogContent className='max-w-2xl'>
+                    <DialogHeader>
+                        <DialogTitle>Editar Entrega</DialogTitle>
+                        <DialogDescription>
+                            Actualiza la información de la entrega
+                        </DialogDescription>
+                    </DialogHeader>
+                    <EditEntrega
+                        entrega={selectedEntrega}
+                        onClose={() => setOpenEditEntrega(false)}
+                        onSuccess={() => {
+                            fetchEntregas()
+                            setOpenEditEntrega(false)
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
+        </div >
     )
 }
 

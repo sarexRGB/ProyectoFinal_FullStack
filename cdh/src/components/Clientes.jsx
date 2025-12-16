@@ -35,7 +35,7 @@ function Clientes() {
                 primer_apellido: selectedItem.primer_apellido || '',
                 segundo_apellido: selectedItem.segundo_apellido || '',
                 email: selectedItem.email || '',
-                telefono: selectedItem.telefono || ''
+                telefono: selectedItem.telefono || '+506 '
             });
         } else {
             setFormData({
@@ -43,7 +43,7 @@ function Clientes() {
                 primer_apellido: '',
                 segundo_apellido: '',
                 email: '',
-                telefono: ''
+                telefono: '+506 '
             });
         }
     }, [selectedItem]);
@@ -80,12 +80,18 @@ function Clientes() {
             primer_apellido: '',
             segundo_apellido: '',
             email: '',
-            telefono: ''
+            telefono: '+506 '
         });
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        if (name === 'telefono') {
+            if (!value.startsWith('+506 ')) {
+                setFormData(prev => ({ ...prev, [name]: '+506 ' + value.replace(/^\+506\s*/, '') }));
+                return;
+            }
+        }
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -135,7 +141,10 @@ function Clientes() {
                     </TableHeader>
                     <TableBody>
                         {clientes.map((cliente) => (
-                            <TableRow key={cliente.id}>
+                            <TableRow
+                                key={cliente.id}
+                                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                            >
                                 <TableCell className='text-sm-gray-300'>{cliente.nombre_completo}</TableCell>
                                 <TableCell className='text-sm-gray-300'>{cliente.email}</TableCell>
                                 <TableCell className='text-sm-gray-300'>{cliente.telefono}</TableCell>

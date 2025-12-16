@@ -1,11 +1,8 @@
 import React from 'react'
+import AdminCatalogo from '@/components/AdminCatalogo'
 
 function AdminVenta() {
-  return (
-    <div>
-        
-    </div>
-  )
+  return <AdminCatalogo tipo="venta" />
 }
 
 export default AdminVenta

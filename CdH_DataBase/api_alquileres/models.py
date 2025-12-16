@@ -18,6 +18,14 @@ class Alquiler(models.Model):
         default=EstadoAlquiler.PENDIENTE
     )
     contrato = models.URLField(max_length=500, blank=True, null=True)
+    descuento_tipo = models.CharField(
+        max_length=15,
+        choices=[('NINGUNO', 'Sin descuento'), ('PORCENTAJE', 'Porcentaje'), ('FIJO', 'Monto fijo')],
+        default='NINGUNO',
+        blank=True,
+        null=True
+    )
+    descuento_valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Alquiler'
@@ -32,6 +40,14 @@ class DetalleAlquiler(models.Model):
     producto = models.ForeignKey('api_productos.Producto', on_delete=models.CASCADE)
     cantidad = models.IntegerField()
     precio_diario = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento_tipo = models.CharField(
+        max_length=15,
+        choices=[('NINGUNO', 'Sin descuento'), ('PORCENTAJE', 'Porcentaje'), ('FIJO', 'Monto fijo')],
+        default='NINGUNO',
+        blank=True,
+        null=True
+    )
+    descuento_valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Detalle de la alquiler'
@@ -48,13 +64,16 @@ class Devolucion(models.Model):
         REPARAR = 'REPARAR', 'Requiere reparación'
 
     alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE)
-    fecha = models.DateField()
+    entrega = models.ForeignKey('Entrega', on_delete=models.CASCADE, null=True, blank=True, related_name='devoluciones')
+    fecha = models.DateTimeField()
+    chofer = models.ForeignKey('api_usuarios.Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+    vehiculo = models.ForeignKey('api_vehiculos.Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
     estado = models.CharField(
         max_length=10,
         choices=EstadoDevolucion.choices,
         default=EstadoDevolucion.BUENO
     )
-    observaciones = models.TextField
+    observaciones = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Devoluvión'
@@ -75,13 +94,33 @@ class Entrega(models.Model):
     chofer = models.ForeignKey('api_usuarios.Usuario', on_delete=models.CASCADE)
     alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE)
     vehiculo = models.ForeignKey('api_vehiculos.Vehiculo', on_delete=models.CASCADE)
-    fecha_salida = models.DateField()
-    fecha_retorno = models.DateField()
+    fecha_salida = models.DateTimeField()
+    fecha_retorno = models.DateTimeField()
     estado = models.CharField(
         max_length=15,
         choices=EstadoEntrega.choices,
         default=EstadoEntrega.PENDIENTE
     )
 
+    class Meta:
+        verbose_name = 'Entrega'
+        verbose_name_plural = 'Entregas'
 
+    def __str__(self):
+        return f"Entrega para el alquiler {self.alquiler} realizada por {self.chofer}"
 
+# Retiro por Cliente
+class RetiroCliente(models.Model):
+    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, null=True, blank=True, related_name='retiros')
+    venta = models.ForeignKey('api_ventas.Venta', on_delete=models.CASCADE, null=True, blank=True, related_name='retiros')
+    cliente = models.ForeignKey('api_clientes.Cliente', on_delete=models.CASCADE)
+    empleado = models.ForeignKey('api_usuarios.Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+    fecha_retiro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Retiro de Cliente'
+        verbose_name_plural = 'Retiros de Clientes'
+
+    def __str__(self):
+        tipo = "alquiler" if self.alquiler else "venta"
+        return f"Retiro de cliente para {tipo} - {self.cliente}"

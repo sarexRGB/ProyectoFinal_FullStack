@@ -4,7 +4,6 @@ class Pago(models.Model):
     class TipoCompra(models.TextChoices):
         VENTA = 'VENTA', 'Venta'
         ALQUILER = 'ALQUILER', 'Alquiler'
-        COMPRA = 'ORDEN COMPRA', 'Orden de compra'
 
     class MetodoPago(models.TextChoices):
         EFECTIVO = 'EFECTIVO', 'Efectivo'
@@ -27,4 +26,3 @@ class Pago(models.Model):
     fecha_pago = models.DateField()
     venta = models.ForeignKey('api_ventas.Venta', on_delete=models.CASCADE, null=True)
     alquiler = models.ForeignKey('api_alquileres.Alquiler', on_delete=models.CASCADE, null=True)
-    orden_compra = models.ForeignKey('api_compras.OrdenCompra', on_delete=models.CASCADE, null=True)

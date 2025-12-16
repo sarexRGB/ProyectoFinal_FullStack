@@ -8,6 +8,7 @@ export const deleteBodega = (id) => axiosInstance.delete(`inventario/bodega/${id
 
 // Piezas
 export const getPiezas = () => axiosInstance.get("inventario/pieza/");
+export const getPieza = (id) => axiosInstance.get(`inventario/pieza/${id}/`);
 export const createPieza = (data) => axiosInstance.post("inventario/pieza/", data);
 export const updatePieza = (id, data) => axiosInstance.put(`inventario/pieza/${id}/`, data);
 export const deletePieza = (id) => axiosInstance.delete(`inventario/pieza/${id}/`);
@@ -19,13 +20,13 @@ export const updateProveedor = (id, data) => axiosInstance.put(`inventario/prove
 export const deteleProveedor = (id) => axiosInstance.delete(`inventario/proveedor/${id}/`);
 
 // Inventario general
-export const getInventario = () => axiosInstance.get("inventario/inventario/");
+export const getInventario = (params) => axiosInstance.get("inventario/inventario/", { params: { ...params, t: Date.now() } });
 export const createInventario = (data) => axiosInstance.post("inventario/inventario/", data);
 export const updateInventario = (id, data) => axiosInstance.put(`inventario/inventario/${id}/`, data);
 export const deleteInventario = (id) => axiosInstance.delete(`inventario/inventario/${id}/`);
 
 // Inventario de piezas de repuestos
-export const getInventarioPieza = () => axiosInstance.get("inventario/inventario_pieza/");
+export const getInventarioPieza = (params) => axiosInstance.get("inventario/inventario_pieza/", { params: { ...params, t: Date.now() } });
 export const createInventarioPieza = (data) => axiosInstance.post("inventario/inventario_pieza/", data);
 export const updateInventarioPieza = (id, data) => axiosInstance.put(`inventario/inventario_pieza/${id}/`, data);
 export const deleteInventarioPieza = (id) => axiosInstance.delete(`inventario/inventario_pieza/${id}/`);

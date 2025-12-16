@@ -8,10 +8,11 @@ from .models import (
 )
 from rest_framework import generics
 from .serializers import(
-    BodegaSerializer, ProveedorSerializer,
-    PiezaDetailSerializer, PiezaListSerializer,
-    InventarioListSerializer, InventarioDetailSerializer,
-    InventarioPiezaListSerializer, InventarioPiezaDetailSerializer,
+    BodegaSerializer,
+    ProveedorSerializer,
+    PiezaSerializer,
+    InventarioSerializer,
+    InventarioPiezaSerializer,
     MovimientoInventarioSerializer
 )
 
@@ -28,15 +29,11 @@ class BodegaDetailView(generics.RetrieveUpdateDestroyAPIView):
 # Piezas de repuesto
 class PiezaListCreateView(generics.ListCreateAPIView):
     queryset = Pieza.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return PiezaListSerializer
-        return PiezaDetailSerializer
+    serializer_class = PiezaSerializer
 
 class PiezaDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Pieza.objects.all()
-    serializer_class = PiezaDetailSerializer
+    serializer_class = PiezaSerializer
 
 
 # Proveedor
@@ -52,29 +49,35 @@ class ProveedoresDetailView(generics.RetrieveUpdateDestroyAPIView):
 # Inventario
 class InventarioListCreateView(generics.ListCreateAPIView):
     queryset = Inventario.objects.all()
+    serializer_class = InventarioSerializer
 
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return InventarioListSerializer
-        return InventarioDetailSerializer
+    def get_queryset(self):
+        queryset = Inventario.objects.all()
+        producto = self.request.query_params.get('producto')
+        if producto is not None:
+            queryset = queryset.filter(producto=producto)
+        return queryset
 
 class InventarioDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Inventario.objects.all()
-    serializer_class = InventarioDetailSerializer
+    serializer_class = InventarioSerializer
 
 
 # Inventario de piezas de repuesto
 class InventarioPiezaListCreateView(generics.ListCreateAPIView):
     queryset = InventarioPieza.objects.all()
+    serializer_class = InventarioPiezaSerializer
 
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return InventarioPiezaListSerializer
-        return InventarioPiezaDetailSerializer
+    def get_queryset(self):
+        queryset = InventarioPieza.objects.all()
+        pieza = self.request.query_params.get('pieza')
+        if pieza is not None:
+            queryset = queryset.filter(pieza=pieza)
+        return queryset
 
 class InventarioPiezaDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = InventarioPieza.objects.all()
-    serializer_class = InventarioPiezaDetailSerializer
+    serializer_class = InventarioPiezaSerializer
 
 
 # Movimientos de los inventarios

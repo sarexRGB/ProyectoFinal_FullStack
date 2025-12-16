@@ -4,6 +4,14 @@ class Venta(models.Model):
     cliente = models.ForeignKey('api_clientes.Cliente', on_delete=models.CASCADE)
     fecha = models.DateField()
     total = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento_tipo = models.CharField(
+        max_length=15,
+        choices=[('NINGUNO', 'Sin descuento'), ('PORCENTAJE', 'Porcentaje'), ('FIJO', 'Monto fijo')],
+        default='NINGUNO',
+        blank=True,
+        null=True
+    )
+    descuento_valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Venta'
@@ -17,6 +25,14 @@ class DetalleVenta(models.Model):
     producto = models.ForeignKey('api_productos.Producto', on_delete=models.CASCADE)
     cantidad = models.IntegerField()
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento_tipo = models.CharField(
+        max_length=15,
+        choices=[('NINGUNO', 'Sin descuento'), ('PORCENTAJE', 'Porcentaje'), ('FIJO', 'Monto fijo')],
+        default='NINGUNO',
+        blank=True,
+        null=True
+    )
+    descuento_valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Detalle de la venta'

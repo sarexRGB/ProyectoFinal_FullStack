@@ -34,6 +34,7 @@ class ProductoSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'nombre',
+            'codigo',
             'descripcion',
             'precio_venta',
             'precio_alquiler',

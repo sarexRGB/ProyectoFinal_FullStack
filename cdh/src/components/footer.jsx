@@ -6,9 +6,9 @@ import DarkLogo from '@/img/mixer-dark.png'
 import { useTheme } from "next-themes";
 
 const Footer = () => {
-    const { theme, systemTheme } = useTheme();
-    const currentTheme = theme === "system" ? systemTheme : theme;
-    const isDark = currentTheme === "dark";
+  const { theme, systemTheme } = useTheme();
+  const currentTheme = theme === "system" ? systemTheme : theme;
+  const isDark = currentTheme === "dark";
   return (
     <footer className='border-t bg-background'>
       <div className='max-w-7xl mx-auto'>
@@ -58,17 +58,19 @@ const Footer = () => {
             <p className="text-secondary-foreground">Domingos: Cerrado</p>
           </div>
         </div>
+        <div className="flex justify-center">
+          <Link
+          to="/about"
+          className="text-primary font-semibold hover:underline text-2xl"
+        >
+          Acerca de nosotros
+        </Link>
+        </div>
         <Separator />
-        <div className="py-8 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+        <div className="py-8 flex flex-col-reverse sm:flex-row items-center justify-center">
           <p className="text-sm text-muted-foreground">
             © 2024 Central de Herramientas. Todos los derechos reservados.
           </p>
-          <Link
-            to="/about"
-            className="text-primary font-semibold hover:underline"
-          >
-            Acerca de nosotros
-          </Link>
         </div>
       </div>
     </footer>

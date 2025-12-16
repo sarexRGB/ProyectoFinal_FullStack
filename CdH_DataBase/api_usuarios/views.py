@@ -5,12 +5,12 @@ from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .serializers import (
-    UsuarioListSerializer, UsuarioDetailSerializer,
-    RolesEmpleadoListSerializer, RolesEmpleadoDetailSerializer,
-    ChoferDatosListSerializer, ChoferDatosDetailSerializer,
-    MecanicoDatosListSerializer, MecanicoDatosDetailSerializer,
-    DespachoDatosListSerializer, DespachoDatosDetailSerializer,
-    AsistenciaListSerializer, AsistenciaDetailSerializer,
+    UsuarioSerializer,
+    RolesEmpleadoSerializer,
+    ChoferDatosSerializer,
+    MecanicoDatosSerializer,
+    DespachoDatosSerializer,
+    AsistenciaSerializer,
 )
 
 # Usuarios
@@ -18,50 +18,54 @@ from .serializers import (
 class UsuarioListCreateView(generics.ListCreateAPIView):
     queryset = Usuario.objects.all()
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return UsuarioListSerializer
-        return UsuarioDetailSerializer
+    serializer_class = UsuarioSerializer
 
 
 class UsuarioDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Usuario.objects.all()
-    serializer_class = UsuarioDetailSerializer
-    permission_classes = [IsAuthenticated, IsAdminGroup]
+    serializer_class = UsuarioSerializer
+    permission_classes = [IsAuthenticated]
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile_view(request):
-    serializer = UsuarioDetailSerializer(request.user)
+    serializer = UsuarioSerializer(request.user)
     return Response(serializer.data)
 
 
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def profile_update_view(request):
-    serializer = UsuarioDetailSerializer(request.user, data=request.data, partial=True)
+    serializer = UsuarioSerializer(request.user, data=request.data, partial=True)
     if serializer.is_valid():
-        serializer.save()
+        serializer.save()   
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reset_password_view(request, pk):
+    try:
+        user = Usuario.objects.get(pk=pk)
+        user.set_password("central2025")
+        user.save()
+        return Response({"message": "Contraseña restablecida exitosamente a 'central2025'"})
+    except Usuario.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=404)
 
 
 # Roles de empleados
 class RolesEmpleadoListCreateView(generics.ListCreateAPIView):
     queryset = RolesEmpleado.objects.all()
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return RolesEmpleadoListSerializer
-        return RolesEmpleadoDetailSerializer
+    serializer_class = RolesEmpleadoSerializer
 
 
 class RolesEmpleadoDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RolesEmpleado.objects.all()
-    serializer_class = RolesEmpleadoDetailSerializer
+    serializer_class = RolesEmpleadoSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -69,16 +73,12 @@ class RolesEmpleadoDetailView(generics.RetrieveUpdateDestroyAPIView):
 class ChoferDatosListCreateView(generics.ListCreateAPIView):
     queryset = ChoferDatos.objects.select_related("empleado").all()
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return ChoferDatosListSerializer
-        return ChoferDatosDetailSerializer
+    serializer_class = ChoferDatosSerializer
 
 
 class ChoferDatosDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ChoferDatos.objects.select_related("empleado").all()
-    serializer_class = ChoferDatosDetailSerializer
+    serializer_class = ChoferDatosSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -86,16 +86,12 @@ class ChoferDatosDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MecanicoDatosListCreateView(generics.ListCreateAPIView):
     queryset = MecanicoDatos.objects.select_related("empleado").all()
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return MecanicoDatosListSerializer
-        return MecanicoDatosDetailSerializer
+    serializer_class = MecanicoDatosSerializer
 
 
 class MecanicoDatosDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = MecanicoDatos.objects.select_related("empleado").all()
-    serializer_class = MecanicoDatosDetailSerializer
+    serializer_class = MecanicoDatosSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -103,40 +99,30 @@ class MecanicoDatosDetailView(generics.RetrieveUpdateDestroyAPIView):
 class DespachoDatosListCreateView(generics.ListCreateAPIView):
     queryset = DespachoDatos.objects.select_related("empleado").all()
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return DespachoDatosListSerializer
-        return DespachoDatosDetailSerializer
-
+    serializer_class = DespachoDatosSerializer
 
 class DespachoDatosDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DespachoDatos.objects.select_related("empleado").all()
-    serializer_class = DespachoDatosDetailSerializer
+    serializer_class = DespachoDatosSerializer
     permission_classes = [IsAuthenticated]
 
 
 # Asistencias
 class AsistenciaListCreateView(generics.ListCreateAPIView):
     queryset = Asistencia.objects.select_related("empleado").all()
+    serializer_class = AsistenciaSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return AsistenciaListSerializer
-        return AsistenciaDetailSerializer
-
 
 class AsistenciaDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Asistencia.objects.select_related("empleado").all()
-    serializer_class = AsistenciaDetailSerializer
+    serializer_class = AsistenciaSerializer
     permission_classes = [IsAuthenticated]
 
 
 # Empleados
 class EmpleadoListView(generics.ListAPIView):
-    serializer_class = UsuarioListSerializer
+    serializer_class = UsuarioSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Usuario.objects.filter(rolesempleado__isnull=False).distinct()
+        return Usuario.objects.filter(groups__name__in=['Mecánico', 'Chofer', 'Despacho']).distinct()

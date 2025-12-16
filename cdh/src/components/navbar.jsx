@@ -23,22 +23,22 @@ const Navbar = () => {
             className="w-60 transition-all duration-300"
           />
         </Link>
-        <div>
-          <Button onClick={() => navigate('/catalogos')}>
-            <Package/>
-            Catalogos
-          </Button>
-        </div>
-        <div className="items-center grid gap-y-5">
-          <p className="flex gap-1 text-secondary-foreground">
-            <Phone size={18}/>
-            +506 88888888
-          </p>
-          <p className="flex gap-1 text-secondary-foreground">
-            <Mail size={18}/>
-            centralherramientas@gmail.com
-          </p>
-        </div>
+        <p className="flex gap-1 text-secondary-foreground">
+          <Phone size={18}/>
+          +506 88888888
+        </p>
+        <p className="flex gap-1 text-secondary-foreground">
+          <Mail size={18}/>
+          centralherramientas@gmail.com
+        </p>
+
+        <Link
+            to="/about"
+            className="text-primary font-semibold hover:underline text-base"
+          >
+            Acerca de nosotros
+          </Link>
+
         <div className="">
           <ThemeButton />
         </div>

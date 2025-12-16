@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('api_alquileres', '0001_initial'),
-        ('api_compras', '0001_initial'),
         ('api_ventas', '0001_initial'),
     ]
 
@@ -19,12 +18,11 @@ class Migration(migrations.Migration):
             name='Pago',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tipo_compra', models.CharField(choices=[('VENTA', 'Venta'), ('ALQUILER', 'Alquiler'), ('ORDEN COMPRA', 'Orden de compra')], default='VENTA', max_length=12)),
+                ('tipo_compra', models.CharField(choices=[('VENTA', 'Venta'), ('ALQUILER', 'Alquiler')], default='VENTA', max_length=12)),
                 ('metodo_pago', models.CharField(choices=[('EFECTIVO', 'Efectivo'), ('TARJETA CREDITO', 'Tarjeta de crédito'), ('TRANSFERENCIA BANCARIA', 'Transferencia bancaria'), ('SINPE', 'Sinpe'), ('CHEQUE', 'Cheque')], default='EFECTIVO', max_length=22)),
                 ('monto', models.DecimalField(decimal_places=2, max_digits=9)),
                 ('fecha_pago', models.DateField()),
                 ('alquiler', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='api_alquileres.alquiler')),
-                ('orden_compra', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='api_compras.ordencompra')),
                 ('venta', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='api_ventas.venta')),
             ],
         ),

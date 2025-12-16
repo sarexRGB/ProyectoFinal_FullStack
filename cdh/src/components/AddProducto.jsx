@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,7 +12,9 @@ import { getBodegas, createInventario, updateInventario } from '@/services/Inven
 
 function AddProducto({ isOpen, onClose, item, inventarioItem }) {
   const [productoFormData, setProductoFormData] = useState({
+
     nombre: '',
+    codigo: '',
     descripcion: '',
     precio_venta: '',
     precio_alquiler: '',
@@ -37,7 +40,7 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  
+
 
   useEffect(() => {
     fetchBodegas();
@@ -45,13 +48,13 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
     fetchModalidades();
 
     if (item) {
-      /*  */
       setProductoFormData({
         nombre: item.nombre || '',
+        codigo: item.codigo || '',
         descripcion: item.descripcion || '',
         precio_venta: item.precio_venta || '',
         precio_alquiler: item.precio_alquiler || '',
-        categoria: item.categoria?.id || '',
+        categoria: item.categoria?.id || item.categoria || '',
         estado: item.estado || 'DISPONIBLE',
         imagen: item.imagen || '',
       });
@@ -65,9 +68,9 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
 
     if (inventarioItem) {
       setInventarioData({
-        bodega: inventarioItem.bodega?.id || '',
+        bodega: (typeof inventarioItem.bodega === 'object' ? inventarioItem.bodega.id : inventarioItem.bodega) || '',
         ubicacion: inventarioItem.ubicacion || '',
-        stock: inventarioItem.stock || '',
+        stock: inventarioItem.stock_disponible || inventarioItem.stock || '',
         minimo_stock: inventarioItem.minimo_stock || '',
       });
     }
@@ -100,6 +103,7 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
     }
   };
 
+
   const handleProductoChange = (e) => {
     setProductoFormData({ ...productoFormData, [e.target.name]: e.target.value });
   };
@@ -125,7 +129,11 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
       if (modalidad === 'venta') {
         setProductoFormData(prev => ({ ...prev, precio_venta: '' }));
       } else if (modalidad === 'alquiler') {
-        setProductoFormData(prev => ({ ...prev, precio_alquiler: '' }));
+        setProductoFormData(prev => ({
+          ...prev,
+          precio_alquiler: '',
+          estado: prev.estado === 'ALQUILADO' ? 'DISPONIBLE' : prev.estado
+        }));
       }
     }
   };
@@ -146,6 +154,16 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
         return;
       }
 
+      if (!inventarioData.bodega) {
+        alert('Debes seleccionar una bodega');
+        return;
+      }
+
+      if (!inventarioData.stock || inventarioData.stock === '') {
+        alert('Debes ingresar el stock inicial');
+        return;
+      }
+
       let imagenUrl = productoFormData.imagen;
 
       if (imageFile) {
@@ -160,8 +178,14 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
         imagen: imagenUrl,
         precio_venta: selectedModalidades.venta && productoFormData.precio_venta ? parseFloat(productoFormData.precio_venta) : null,
         precio_alquiler: selectedModalidades.alquiler && productoFormData.precio_alquiler ? parseFloat(productoFormData.precio_alquiler) : null,
-        categoria: parseInt(productoFormData.categoria),
+        categoria: typeof productoFormData.categoria === 'object'
+          ? productoFormData.categoria.id
+          : (productoFormData.categoria
+            ? parseInt(productoFormData.categoria)
+            : null),
       };
+
+      console.log('Datos del producto a enviar:', productoData);
 
       let productoId;
       let isNewProduct = false;
@@ -175,7 +199,6 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
         isNewProduct = true;
       }
 
-      // Solo crear relaciones de modalidad para productos nuevos
       if (isNewProduct) {
         const ventaModalidad = modalidades.find(m => m.nombre.toLowerCase() === 'venta');
         const alquilerModalidad = modalidades.find(m => m.nombre.toLowerCase() === 'alquiler');
@@ -195,28 +218,32 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
         }
       }
 
-      if (inventarioData.bodega && inventarioData.stock) {
-        const inventarioPayload = {
-          producto: productoId,
-          bodega: inventarioData.bodega,
-          ubicacion: inventarioData.ubicacion,
-          stock: parseInt(inventarioData.stock),
-          minimo_stock: parseInt(inventarioData.minimo_stock) || 0,
-          fecha_actualizacion: new Date().toISOString(),
-          activo: true,
-        };
+      const inventarioPayload = {
+        producto: productoId,
+        bodega: parseInt(inventarioData.bodega),
+        stock_disponible: parseInt(inventarioData.stock),
+      };
 
-        if (inventarioItem) {
-          await updateInventario(inventarioItem.id, inventarioPayload);
-        } else {
+      if (inventarioData.minimo_stock) {
+        inventarioPayload.minimo_stock = parseInt(inventarioData.minimo_stock);
+      }
+
+      if (inventarioItem && !inventarioItem.isVirtual) {
+        await updateInventario(inventarioItem.id, inventarioPayload);
+      } else {
+        try {
           await createInventario(inventarioPayload);
+        } catch (invError) {
+          console.error('Error al guardar inventario:', invError);
+          toast.error('Ocurrió un error al guardar el inventario');
+          throw invError;
         }
       }
 
       onClose();
     } catch (error) {
       console.error('Error al guardar producto:', error);
-      alert('Ocurrió un error al guardar el producto');
+      toast.error('Ocurrió un error al guardar el producto');
     }
   };
 
@@ -245,6 +272,17 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
                   value={productoFormData.nombre}
                   onChange={handleProductoChange}
                   placeholder='Ej: Excavadora Caterpillar 320'
+                />
+              </div>
+
+              <div className='col-span-1'>
+                <Label htmlFor='codigo'>Código</Label>
+                <Input
+                  id='codigo'
+                  name='codigo'
+                  value={productoFormData.codigo}
+                  onChange={handleProductoChange}
+                  placeholder='Ej: PROD-001'
                 />
               </div>
 
@@ -290,7 +328,9 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='DISPONIBLE'>Disponible</SelectItem>
-                    <SelectItem value='ALQUILADO'>En alquiler</SelectItem>
+                    {selectedModalidades.alquiler && (
+                      <SelectItem value='ALQUILADO'>En alquiler</SelectItem>
+                    )}
                     <SelectItem value='REPARACIÓN'>En reparación</SelectItem>
                     <SelectItem value='INACTIVO'>Inactivo</SelectItem>
                   </SelectContent>
@@ -379,7 +419,7 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
           <div className='space-y-4 border-t pt-4'>
             <h3 className='text-lg font-semibold'>Información de Inventario</h3>
 
-            <div className='grid grid-cols-2 gap-4'>
+            <div className='flex justify-between gap-4'>
               <div>
                 <Label htmlFor='bodega'>Bodega *</Label>
                 <Select
@@ -399,19 +439,21 @@ function AddProducto({ isOpen, onClose, item, inventarioItem }) {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor='ubicacion'>Ubicación *</Label>
-                <Input
-                  id='ubicacion'
-                  name='ubicacion'
-                  value={inventarioData.ubicacion}
-                  onChange={handleInventarioChange}
-                  placeholder='Ej: Estante A-1'
-                />
-              </div>
+              {selectedModalidades.alquiler && inventarioItem && (
+                <div>
+                  <Label htmlFor='stock_alquilado'>Stock Alquilado</Label>
+                  <Input
+                    id='stock_alquilado'
+                    value={inventarioItem.stock_alquilado || 0}
+                    disabled
+                    className='bg-gray-100'
+                  />
+                </div>
+              )}
+
 
               <div>
-                <Label htmlFor='stock'>Stock *</Label>
+                <Label htmlFor='stock'>Stock Disponible *</Label>
                 <Input
                   id='stock'
                   name='stock'

@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
     DropdownMenu,
@@ -9,20 +10,37 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ArrowLeft, User, Mail, Shield, Truck, Wrench, Package, MoreVertical, Pencil, Key, Trash2, Phone } from 'lucide-react'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { ArrowLeft, User, Mail, Shield, Truck, Wrench, Package, MoreVertical, Pencil, Key, Trash, Phone, CalendarCheck } from 'lucide-react'
 import { AuthContext } from '@/services/AuthContext'
 import { getProfile } from '@/services/authServices'
-import { getUsuario, deleteUsuario } from '@/services/UsuariosServices'
+import { getUsuario, deleteUsuario, resetPassword } from '@/services/UsuariosServices'
 import Register from './Register'
 import UpdatePerfil from '@/components/UpdatePerfil'
 
 function PerfilUsuario({ userId }) {
     const navigate = useNavigate();
-    const { user, loading: authLoading } = useContext(AuthContext);
+    const { user, loading: authLoading, roles } = useContext(AuthContext);
     const [usuario, setUsuario] = useState(null);
     const [loading, setLoading] = useState(true);
     const [openEditModal, setOpenEditModal] = useState(false);
     const isOwnProfile = !userId;
+
+    const [alertConfig, setAlertConfig] = useState({
+        isOpen: false,
+        title: '',
+        description: '',
+        action: null
+    });
 
     React.useEffect(() => {
         const fetchUsuarioCompleto = async () => {
@@ -63,27 +81,45 @@ function PerfilUsuario({ userId }) {
         }
     };
 
-    const handleChangePassword = () => {
-        alert('Funcionalidad de cambio de contraseña próximamente');
+    const handleRestorePassword = () => {
+        setAlertConfig({
+            isOpen: true,
+            title: '¿Restaurar contraseña?',
+            description: `¿Estás seguro de que deseas restaurar la contraseña del usuario "${usuario?.username}" a "central2025"?`,
+            action: async () => {
+                try {
+                    await resetPassword(usuario.id);
+                    toast('Contraseña restablecida exitosamente');
+                } catch (error) {
+                    console.error("Error al restablecer contraseña:", error);
+                    toast('Error al restablecer la contraseña');
+                }
+            }
+        });
     };
 
-    const handleDeleteUser = async () => {
+    const handleUpdateUser = async (data) => {
+        await updateUsuario(usuario.id, data);
+    };
+
+    const handleDeleteUser = () => {
         if (!userId) return;
 
-        const confirmDelete = window.confirm(
-            `¿Estás seguro de que deseas eliminar el usuario "${usuario?.username}"? Esta acción no se puede deshacer.`
-        );
-
-        if (confirmDelete) {
-            try {
-                await deleteUsuario(userId);
-                alert('Usuario eliminado exitosamente');
-                navigate('/admin/personal');
-            } catch (error) {
-                console.error("Error al eliminar usuario:", error);
-                alert('Error al eliminar el usuario. Por favor, intenta de nuevo.');
+        setAlertConfig({
+            isOpen: true,
+            title: '¿Eliminar usuario?',
+            description: `¿Estás seguro de que deseas eliminar el usuario "${usuario?.username}"? Esta acción no se puede deshacer.`,
+            action: async () => {
+                try {
+                    await deleteUsuario(userId);
+                    toast('Usuario eliminado exitosamente');
+                    navigate('/admin/personal');
+                } catch (error) {
+                    console.error("Error al eliminar usuario:", error);
+                    toast('Error al eliminar el usuario. Por favor, intenta de nuevo.');
+                }
             }
-        }
+        });
     };
 
     if (authLoading || loading) {
@@ -165,8 +201,17 @@ function PerfilUsuario({ userId }) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            {roleData.observaciones && (
+                            {roleData.observaciones ? (
                                 <p><strong>Observaciones:</strong> {roleData.observaciones}</p>
+                            ) : (
+                                <div className="space-y-1">
+                                    <Label className="text-sm font-medium">Observaciones:</Label>
+                                    <textarea
+                                        className="w-full min-h-[60px] p-2 rounded-md border text-sm text-gray-500 resize-none focus:outline-none"
+                                        disabled
+                                        value="No hay observaciones"
+                                    />
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -193,30 +238,58 @@ function PerfilUsuario({ userId }) {
                     <ArrowLeft size={20} /> Volver
                 </Button>
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <MoreVertical size={16} />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setOpenEditModal(true)}>
-                            <Pencil size={16} className="mr-2" />
-                            Editar Perfil
-                        </DropdownMenuItem>
-                        {isOwnProfile ? (
-                            <DropdownMenuItem onClick={handleChangePassword}>
-                                <Key size={16} className="mr-2" />
-                                Cambiar Contraseña
+                <div className="flex gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="flex items-center gap-2">
+                                <MoreVertical size={20} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem
+                                variant='outline'
+                                className='flex items-center gap-2'
+                                onClick={() => setOpenEditModal(true)}
+                            >
+                                <Pencil size={18} />
+                                Editar Perfil
                             </DropdownMenuItem>
-                        ) : (
-                            <DropdownMenuItem onClick={handleDeleteUser} className="text-destructive">
-                                <Trash2 size={16} className="mr-2" />
-                                Eliminar Perfil
-                            </DropdownMenuItem>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            {isOwnProfile ? (
+                                <DropdownMenuItem>
+                                    <Key size={18} className='mr-2' />
+                                    Cambiar Contraseña
+                                </DropdownMenuItem>
+                            ) : (
+                                <>
+                                    <DropdownMenuItem
+                                        variant='outline'
+                                        className='flex items-center gap-2'
+                                        onClick={handleRestorePassword}
+                                    >
+                                        <Key size={18} />
+                                        Restaurar Contraseña
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        variant='outline'
+                                        className='flex items-center gap-2'
+                                        onClick={() => handleDeleteUser(true)}
+                                    >
+                                        <Trash size={18} />
+                                        Eliminar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        variant="outline"
+                                        className="flex items-center gap-2"
+                                        onClick={() => navigate(`/admin/asistencias/usuario/${usuario.id}`)}
+                                    >
+                                        <CalendarCheck size={18} />
+                                        Ver Asistencia
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             <Card className="mb-6">
@@ -235,7 +308,7 @@ function PerfilUsuario({ userId }) {
                             <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <User size={16} /> Nombre Completo
                             </Label>
-                            <p className="text-lg">{usuario.first_name} {usuario.last_name} {usuario.segundo_apellido}</p>
+                            <p className="text-lg">{usuario.nombre_completo}</p>
                         </div>
                         <div className="space-y-1">
                             <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -290,6 +363,23 @@ function PerfilUsuario({ userId }) {
                         usuario={usuario} />
                 )
             )}
+
+            <AlertDialog open={alertConfig.isOpen} onOpenChange={(open) => setAlertConfig(prev => ({ ...prev, isOpen: open }))}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{alertConfig.title}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {alertConfig.description}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            if (alertConfig.action) alertConfig.action();
+                        }}>Confirmar</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

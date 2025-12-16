@@ -14,15 +14,29 @@ export const updateDetalleAlquiler = (id, data) => axiosInstance.put(`alquileres
 export const deleteDetalleAlquiler = (id) => axiosInstance.delete(`alquileres/detalle_alquiler/${id}/`);
 
 // Devoluciones
-export const getDevoluciones = (alquilerId) => axiosInstance.get(`alquileres/devolucion/?alquiler_id=${alquilerId}`);
+export const getDevoluciones = (alquilerId) => {
+    const url = alquilerId ? `alquileres/devolucion/?alquiler_id=${alquilerId}` : "alquileres/devolucion/";
+    return axiosInstance.get(url);
+}
 export const createDevolucion = (data) => axiosInstance.post("alquileres/devolucion/", data);
 export const updateDevolucion = (id, data) => axiosInstance.put(`alquileres/devolucion/${id}/`, data);
 export const deleteDevolucion = (id) => axiosInstance.delete(`alquileres/devolucion/${id}/`);
 
 // Entregas
-export const getEntregas = (alquilerId) => axiosInstance.get(`alquileres/entrega/?alquiler_id=${alquilerId}`);
+export const getEntregas = (alquilerId) => {
+    const url = alquilerId ? `alquileres/entrega/?alquiler_id=${alquilerId}` : "alquileres/entrega/";
+    return axiosInstance.get(url);
+}
+export const getEntrega = (id) => axiosInstance.get(`alquileres/entrega/${id}/`);
 export const createEntrega = (data) => axiosInstance.post("alquileres/entrega/", data);
 export const updateEntrega = (id, data) => axiosInstance.put(`alquileres/entrega/${id}/`, data);
+
+// Retiros de Cliente
+export const getRetirosCliente = () => axiosInstance.get("alquileres/retiro_cliente/");
+export const getRetiroCliente = (id) => axiosInstance.get(`alquileres/retiro_cliente/${id}/`);
+export const createRetiroCliente = (data) => axiosInstance.post("alquileres/retiro_cliente/", data);
+export const updateRetiroCliente = (id, data) => axiosInstance.put(`alquileres/retiro_cliente/${id}/`, data);
+export const deleteRetiroCliente = (id) => axiosInstance.delete(`alquileres/retiro_cliente/${id}/`);
 
 // Subida de archivos (contratos)
 export const uploadArchivoAlquiler = (file) => {

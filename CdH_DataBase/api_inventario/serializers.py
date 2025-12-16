@@ -15,13 +15,8 @@ class BodegaSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre']
 
 
-# Piezas de repuestofrom
-class PiezaListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Pieza
-        fields = ['id', 'nombre']
-
-class PiezaDetailSerializer(serializers.ModelSerializer):
+# Piezas de repuesto
+class PiezaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pieza
         fields = ['id', 'nombre', 'descripcion']
@@ -35,52 +30,39 @@ class ProveedorSerializer(serializers.ModelSerializer):
 
 
 # Inventario
-class InventarioListSerializer(serializers.ModelSerializer):
+class InventarioSerializer(serializers.ModelSerializer):
+    producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
+    bodega_nombre = serializers.CharField(source='bodega.nombre', read_only=True)
     class Meta:
         model = Inventario
         fields = [
             'id',
             'producto',
             'bodega',
-            'stock',
-            'fecha_actualizacion'
-        ]
-
-class InventarioDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Inventario
-        fields = [
-            'id',
-            'producto',
-            'bodega',
-            'stock',
+            'producto_nombre',
+            'bodega_nombre',
+            'stock_disponible',
+            'stock_alquilado',
             'minimo_stock',
             'activo',
             'fecha_actualizacion'
         ]
 
-
 # Inventario de piezas de repuesto
-class InventarioPiezaListSerializer(serializers.ModelSerializer):
+class InventarioPiezaSerializer(serializers.ModelSerializer):
+    bodega_nombre = serializers.CharField(source='bodega.nombre', read_only=True)
+    pieza_nombre = serializers.CharField(source='pieza.nombre', read_only=True)
     class Meta:
         model = InventarioPieza
         fields = [
             'id',
             'pieza',
-            'bodega',
-            'stock',
-            'fecha_actualizacion'
-        ]
-
-class InventarioPiezaDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = InventarioPieza
-        fields = [
-            'id',
-            'pieza',
+            'pieza_nombre',
             'origen',
             'proveedor',
             'bodega',
+            'bodega_nombre',
+            'ubicacion',
             'stock',
             'fecha_actualizacion',
             'minimo_stock',

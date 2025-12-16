@@ -38,6 +38,7 @@ function UpdatePerfil({ isOpen, onClose, usuario }) {
                         segundo_apellido: usuario.segundo_apellido || '',
                         telefono: usuario.telefono || '',
                         email: usuario.email || '',
+                        fecha_ingreso: usuario.fecha_ingreso ? usuario.fecha_ingreso : '',
                     });
 
                     setSelectedGroups(usuario.groups?.map(g => g.id) || []);

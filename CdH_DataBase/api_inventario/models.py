@@ -21,6 +21,11 @@ class Pieza(models.Model):
     def __str__(self):
         return self.nombre
 
+    def save(self, *args, **kwargs):
+        if self.nombre:
+            self.nombre = self.nombre.upper()
+        super(Pieza, self).save(*args, **kwargs)
+
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=150)
     telefono = models.CharField(max_length=20)
@@ -36,10 +41,11 @@ class Proveedor(models.Model):
 class Inventario(models.Model):
     producto = models.ForeignKey('api_productos.Producto', on_delete=models.CASCADE, related_name='Inventario')
     bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
-    stock = models.IntegerField()
+    stock_disponible = models.IntegerField()
+    stock_alquilado = models.IntegerField(default=0)
     minimo_stock = models.IntegerField(default=0)
     activo = models.BooleanField(default=True)
-    fecha_actualizacion = models.DateTimeField()
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Inventario'
@@ -64,7 +70,7 @@ class InventarioPieza(models.Model):
     bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
     ubicacion = models.CharField(max_length=100)
     stock = models.IntegerField()
-    fecha_actualizacion = models.DateTimeField()
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     minimo_stock = models.IntegerField(default=0)
     activo = models.BooleanField(default=True)
 

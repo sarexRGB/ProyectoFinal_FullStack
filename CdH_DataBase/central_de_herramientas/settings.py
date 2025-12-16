@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'api_clientes',
     'api_productos',
     'api_inventario',
-    'api_compras',
     'api_finanzas',
     'api_vehiculos',
     'api_mantenimiento',

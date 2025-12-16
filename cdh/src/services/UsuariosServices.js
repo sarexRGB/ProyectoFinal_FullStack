@@ -7,6 +7,7 @@ export const createUsuario = (data) => axiosInstance.post("usuarios/usuario/", d
 export const updateUsuario = (id, data) => axiosInstance.put(`usuarios/usuario/${id}/`, data);
 export const deleteUsuario = (id) => axiosInstance.delete(`usuarios/usuario/${id}/`);
 export const getProfile = () => axiosInstance.get("usuarios/profile/");
+export const resetPassword = (id) => axiosInstance.post(`usuarios/usuario/${id}/reset-password/`);
 
 // Roles de empleados
 export const getRolesEmpleado = () => axiosInstance.get("usuarios/roles/");

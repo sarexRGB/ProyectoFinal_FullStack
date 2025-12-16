@@ -10,47 +10,55 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { getClientes } from '@/services/ClientesServices'
-import { createAlquiler, updateAlquiler, getDetallesAlquiler, getEntregas, createEntrega, updateEntrega, createDetalleAlquiler, updateDetalleAlquiler } from '@/services/AlquilerServices'
+import { createAlquiler, updateAlquiler, getDetallesAlquiler, getEntregas, createEntrega, updateEntrega, createDetalleAlquiler, updateDetalleAlquiler, createRetiroCliente, uploadArchivoAlquiler } from '@/services/AlquilerServices'
 import { createVenta, updateVenta, getDetallesPorVenta, createDetalleVenta, updateDetalleVenta } from '@/services/VentaServices'
 import { getChoferes } from '@/services/UsuariosServices'
 import { getVehiculos } from '@/services/VehiculoServices'
+import { AuthContext } from '@/services/AuthContext'
 import { Plus, Edit, Trash } from 'lucide-react'
 import AddEditDetalle from '@/components/AddEditDetalle'
 
 function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
-    const [clientes, setClientes] = useState([])
-    const [choferes, setChoferes] = useState([])
-    const [vehiculos, setVehiculos] = useState([])
-    const [productos, setProductos] = useState([])
-    const [detalles, setDetalles] = useState([])
-    const [realizarEntrega, setRealizarEntrega] = useState(false)
-    const [clienteRetira, setClienteRetira] = useState(false)
-    const [openDetalleModal, setOpenDetalleModal] = useState(false)
-    const [editingDetalle, setEditingDetalle] = useState(null)
-    const [detalleIndex, setDetalleIndex] = useState(null)
+    const { user } = React.useContext(AuthContext);
+    const [clientes, setClientes] = useState([]);
+    const [choferes, setChoferes] = useState([]);
+    const [vehiculos, setVehiculos] = useState([]);
+    const [productos, setProductos] = useState([]);
+    const [detalles, setDetalles] = useState([]);
+    const [realizarEntrega, setRealizarEntrega] = useState(false);
+    const [clienteRetira, setClienteRetira] = useState(false);
+    const [openDetalleModal, setOpenDetalleModal] = useState(false);
+    const [editingDetalle, setEditingDetalle] = useState(null);
+    const [detalleIndex, setDetalleIndex] = useState(null);
     const [formData, setFormData] = useState({
         cliente: '',
         fecha_inicio: '',
         fecha_fin: '',
-        fecha: '',
         total: '',
         estado: 'Pendiente',
         contrato: '',
-    })
+        descuento_tipo: 'NINGUNO',
+        descuento_valor: '0',
+    });
+    const [entregaFormData, setEntregaFormData] = useState({
+        chofer: '',
+        vehiculo: '',
+        fecha_entrega: '',
+        hora_entrega: '',
+        fecha_devolucion: '',
+        hora_devolucion: '',
+        estado: 'PENDIENTE',
+    });
     const [detalleFormData, setDetalleFormData] = useState({
         producto: '',
         cantidad: '',
         precio_unitario: '',
         precio_diario: '',
+        descuento_tipo: '',
+        descuento_valor: '',
         subtotal: '',
-    })
-    const [entregaFormData, setEntregaFormData] = useState({
-        chofer: '',
-        vehiculo: '',
-        fecha_salida: '',
-        fecha_retorno: '',
-        estado: 'Entregado',
-    })
+    });
+    const [entrega, setEntrega] = useState(null);
 
     useEffect(() => {
         fetchClientes()
@@ -60,119 +68,156 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
         if (initialData) {
             setFormData({
                 cliente: initialData.cliente?.id || initialData.cliente || '',
+                proveedor: initialData.proveedor?.id || initialData.proveedor || '',
                 fecha_inicio: initialData.fecha_inicio || '',
                 fecha_fin: initialData.fecha_fin || '',
-                fecha: initialData.fecha || '',
                 total: initialData.total || '',
                 estado: initialData.estado || 'Pendiente',
                 contrato: initialData.contrato || '',
+                descuento_tipo: initialData.descuento_tipo || 'NINGUNO',
+                descuento_valor: initialData.descuento_valor || '0',
             })
             fetchDetallesExistentes()
-            fetchEntregaExistente()
+            fetchEntregasExistentes()
         }
     }, [initialData])
 
-    // Calcular total automáticamente cuando cambian los detalles o las fechas (para alquileres)
     useEffect(() => {
         let total = 0
-
         if (type === 'alquiler' && formData.fecha_inicio && formData.fecha_fin) {
-            // Calcular días de alquiler
             const fechaInicio = new Date(formData.fecha_inicio)
             const fechaFin = new Date(formData.fecha_fin)
-            const diasAlquiler = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24))
+            const dias = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24))
 
-            // Total = suma de (subtotal * días)
             total = detalles.reduce((sum, detalle) => {
-                return sum + (parseFloat(detalle.subtotal || 0) * diasAlquiler)
+                return sum + (parseFloat(detalle.subtotal || 0) * dias)
             }, 0)
         } else {
-            // Para ventas, el total es la suma de subtotales
             total = detalles.reduce((sum, detalle) => {
                 return sum + parseFloat(detalle.subtotal || 0)
             }, 0)
         }
 
-        setFormData(prev => ({ ...prev, total: total.toFixed(2) }))
-    }, [detalles, formData.fecha_inicio, formData.fecha_fin, type])
+        if (formData.descuento_tipo && formData.descuento_valor) {
+            const descuentoValor = parseFloat(formData.descuento_valor) || 0
+            if (formData.descuento_tipo === 'PORCENTAJE') {
+                total = total * (1 - descuentoValor / 100)
+            } else if (formData.descuento_tipo === 'FIJO') {
+                total = total - descuentoValor
+            }
+        }
+
+        setFormData(prev => ({ ...prev, total: Math.max(0, total).toFixed(2) }))
+    }, [detalles, formData.fecha_inicio, formData.fecha_fin, formData.descuento_tipo, formData.descuento_valor, type]);
+
+    useEffect(() => {
+        if (type === 'alquiler' && formData.fecha_inicio && formData.fecha_fin) {
+            setEntregaFormData(prev => ({
+                ...prev,
+                fecha_entrega: formData.fecha_inicio,
+                fecha_devolucion: formData.fecha_fin
+            }))
+        }
+    }, [formData.fecha_inicio, formData.fecha_fin, type])
 
     const fetchDetallesExistentes = async () => {
         try {
             const response = type === 'alquiler'
                 ? await getDetallesAlquiler(initialData.id)
                 : await getDetallesPorVenta(initialData.id)
-            setDetalles(response.data)
-        } catch (error) {
-            console.log('Error al obtener los detalles', error)
-            toast.error('Error al obtener los detalles')
-        }
-    }
 
-    const fetchEntregaExistente = async () => {
-        try {
-            const response = type === 'alquiler' &&
-                await getEntregas(initialData.id)
-            setRealizarEntrega(response.data)
+            const detallesProcesados = response.data.map(detalle => {
+                if (type === 'alquiler') {
+                    const precio = parseFloat(detalle.precio_diario || detalle.precio_unitario || 0);
+                    const cantidad = parseFloat(detalle.cantidad || 0);
+                    return {
+                        ...detalle,
+                        subtotal: (precio * cantidad).toFixed(2)
+                    };
+                }
+                return detalle;
+            });
+
+            setDetalles(detallesProcesados)
         } catch (error) {
-            console.log('Error al obtener la entrega', error)
-            toast.error('Error al obtener la entrega')
+            toast.error('Error al cargar los detalles')
         }
-    }
+    };
+
+    const fetchEntregasExistentes = async () => {
+        try {
+            if (type === 'alquiler' && initialData?.id) {
+                const response = await getEntregas(initialData.id)
+                if (response.data && response.data.length > 0) {
+                    setRealizarEntrega(true)
+                    const entregaData = response.data[0]
+                    setEntrega(entregaData)
+
+                    const fechaSalida = entregaData.fecha_salida ? entregaData.fecha_salida.split('T') : ['', ''];
+                    const fechaRetorno = entregaData.fecha_retorno ? entregaData.fecha_retorno.split('T') : ['', ''];
+
+                    setEntregaFormData({
+                        chofer: entregaData.chofer?.id || entregaData.chofer || '',
+                        vehiculo: entregaData.vehiculo?.id || entregaData.vehiculo || '',
+                        fecha_entrega: fechaSalida[0],
+                        hora_entrega: fechaSalida[1] ? fechaSalida[1].substring(0, 5) : '',
+                        fecha_devolucion: fechaRetorno[0],
+                        hora_devolucion: fechaRetorno[1] ? fechaRetorno[1].substring(0, 5) : '',
+                        estado: entregaData.estado || 'PENDIENTE'
+                    });
+                }
+            }
+        } catch (error) {
+            toast.error('Error al cargar las entregas')
+        }
+    };
 
     const fetchClientes = async () => {
         try {
             const response = await getClientes()
             setClientes(response.data)
         } catch (error) {
-            console.log('Error al obtener los clientes', error)
-            toast.error('Error al obtener los clientes')
+            toast.error('Error al cargar los clientes')
         }
-    }
+    };
 
     const fetchChoferes = async () => {
         try {
             const response = await getChoferes()
             setChoferes(response.data)
         } catch (error) {
-            console.log('Error al obtener los choferes', error)
-            toast.error('Error al obtener los choferes')
+            toast.error('Error al cargar los choferes')
         }
-    }
+    };
 
     const fetchVehiculos = async () => {
         try {
             const response = await getVehiculos()
             setVehiculos(response.data)
         } catch (error) {
-            console.log('Error al obtener los vehiculos', error)
-            toast.error('Error al obtener los vehiculos')
+            toast.error('Error al cargar los vehiculos')
         }
-    }
+    };
 
     const fetchProductos = async () => {
         try {
             const response = await getProductos()
             setProductos(response.data)
         } catch (error) {
-            console.log('Error al obtener los productos', error)
-            toast.error('Error al obtener los productos')
+            toast.error('Error al cargar los productos')
         }
-    }
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0]
         if (file) {
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                setFormData(prev => ({ ...prev, contrato: e.target.result }))
-            }
-            reader.readAsDataURL(file)
+            setFormData(prev => ({ ...prev, contrato: file }))
         }
-    }
+    };
 
     const handleSelectChange = (name, value) => {
         setFormData(prev => ({ ...prev, [name]: value }))
-    }
+    };
 
     const handleAddDetalle = () => {
         setEditingDetalle(null)
@@ -182,10 +227,12 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
             cantidad: '',
             precio_unitario: '',
             precio_diario: '',
+            descuento_tipo: '',
+            descuento_valor: '',
             subtotal: '',
         })
         setOpenDetalleModal(true)
-    }
+    };
 
     const handleEditDetalle = (detalle, index) => {
         setEditingDetalle(detalle)
@@ -195,40 +242,36 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
             cantidad: detalle.cantidad,
             precio_unitario: detalle.precio_unitario,
             precio_diario: detalle.precio_diario,
+            descuento_tipo: detalle.descuento_tipo,
+            descuento_valor: detalle.descuento_valor,
             subtotal: detalle.subtotal,
         })
         setOpenDetalleModal(true)
-    }
+    };
 
     const handleEntrega = (checked) => {
         setRealizarEntrega(checked)
-    }
+    };
 
     const handleDeleteDetalle = (index) => {
         const nuevosDetalles = detalles.filter((_, i) => i !== index)
         setDetalles(nuevosDetalles)
-    }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target
-
         if (name === 'fecha_fin' && formData.fecha_inicio && value < formData.fecha_inicio) {
-            toast.error('La fecha de fin debe ser posterior a la fecha de inicio')
+            toast.error('La fecha final debe ser mayor a la fecha de inicio')
+            return
         }
-
         setFormData(prev => ({ ...prev, [name]: value }))
-    }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        if (!formData.cliente) {
-            toast.error('Por favor, seleccione un cliente')
-            return
-        }
-
         if (detalles.length === 0) {
-            toast.error('Debe agregar al menos un producto')
+            toast.error('Debe agregar al menos un detalle')
             return
         }
 
@@ -261,7 +304,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
 
         if (type === 'venta') {
             if (!formData.fecha) {
-                toast.error('Por favor, seleccione la fecha de venta')
+                toast.error('Por favor, seleccione la fecha')
                 return
             }
         }
@@ -277,81 +320,147 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                 return
             }
 
-            if (!entregaFormData.fecha_salida) {
-                toast.error('Por favor, seleccione la fecha de salida')
+            if (!entregaFormData.hora_entrega) {
+                toast.error('Por favor, seleccione la hora de entrega')
                 return
             }
 
-            if (!entregaFormData.fecha_retorno) {
-                toast.error('Por favor, seleccione la fecha de retorno')
+            if (!entregaFormData.fecha_devolucion) {
+                toast.error('Por favor, seleccione la fecha de devolucion')
                 return
             }
-            if (new Date(entregaFormData.fecha_retorno) < new Date(entregaFormData.fecha_salida)) {
-                toast.error('La fecha de retorno debe ser posterior a la fecha de salida')
+            if (new Date(entregaFormData.fecha_devolucion) < new Date(entregaFormData.fecha_entrega)) {
+                toast.error('La fecha de devolucion debe ser posterior a la fecha de entrega')
                 return
             }
         }
+
+        console.log('Validaciones exitosas')
 
         try {
             let response
 
             if (type === 'alquiler') {
+                let contratoUrl = formData.contrato
+                if (formData.contrato instanceof File) {
+                    console.log('Subiendo archivo...')
+                    try {
+                        const uploadResponse = await uploadArchivoAlquiler(formData.contrato)
+                        contratoUrl = uploadResponse.data.url
+                        console.log('Archivo subido exitosamente')
+                    } catch (error) {
+                        console.error('Error al subir el archivo', error)
+                        toast.error('Error al subir el archivo')
+                        throw uploadError
+                    }
+                }
+
                 const alquilerData = {
                     cliente: parseInt(formData.cliente),
                     fecha_inicio: formData.fecha_inicio,
                     fecha_fin: formData.fecha_fin,
                     total: parseFloat(formData.total),
                     estado: formData.estado,
-                    contrato: formData.contrato || null
+                    contrato: contratoUrl || null,
+                    descuento_tipo: formData.descuento_tipo || 'NINGUNO',
+                    descuento_valor: parseFloat(formData.descuento_valor) || 0
                 }
+
+                console.log('Enviando alquiler:', alquilerData)
 
                 if (initialData) {
                     response = await updateAlquiler(initialData.id, alquilerData)
+                    console.log('Alquiler actualizado:', response.data)
                 } else {
                     response = await createAlquiler(alquilerData)
+                    console.log('Alquiler creado:', response.data)
                 }
 
-                // Guardar detalles
                 for (const detalle of detalles) {
+                    const productoId = parseInt(detalle.producto)
+                    if (isNaN(productoId)) {
+                        console.error('Invalid producto ID:', detalle.producto, 'Detalle:', detalle)
+                        throw new Error(`Producto inválido en detalle`)
+                    }
+
                     const detalleData = {
                         alquiler: response.data.id,
-                        producto: parseInt(detalle.producto),
-                        cantidad: parseFloat(detalle.cantidad),
-                        precio_diario: parseFloat(detalle.precio_diario || detalle.precio_unitario)
+                        producto: productoId,
+                        cantidad: parseInt(detalle.cantidad),
+                        precio_diario: parseFloat(detalle.precio_diario || detalle.precio_unitario),
+                        descuento_tipo: detalle.descuento_tipo || 'NINGUNO',
+                        descuento_valor: parseFloat(detalle.descuento_valor) || 0
                     }
 
-                    if (detalle.id) {
-                        await updateDetalleAlquiler(detalle.id, detalleData)
-                    } else {
-                        await createDetalleAlquiler(detalleData)
+                    console.log('Guardando detalle:', detalleData)
+
+                    try {
+                        if (detalle.id) {
+                            await updateDetalleAlquiler(detalle.id, detalleData)
+                            console.log('Detalle actualizado:', detalle.id)
+                        } else {
+                            const detalleResponse = await createDetalleAlquiler(detalleData)
+                            console.log('Detalle creado:', detalleResponse.data)
+                        }
+                    } catch (detalleError) {
+                        console.error('Error al guardar detalle:', detalleError)
+                        console.error('Detalle data:', detalleData)
+                        console.error('Error response:', detalleError.response?.data)
+                        throw new Error(`Error al guardar detalle: ${detalleError.response?.data?.message || detalleError.message}`)
                     }
                 }
 
-                // Guardar entrega si corresponde
                 if (realizarEntrega) {
                     const entregaData = {
                         alquiler: response.data.id,
                         chofer: parseInt(entregaFormData.chofer),
                         vehiculo: parseInt(entregaFormData.vehiculo),
-                        fecha_salida: entregaFormData.fecha_salida,
-                        fecha_retorno: entregaFormData.fecha_retorno,
+                        fecha_salida: `${entregaFormData.fecha_entrega}T${entregaFormData.hora_entrega}:00`,
+                        fecha_retorno: `${entregaFormData.fecha_devolucion}T${entregaFormData.hora_devolucion}:00`,
                         estado: entregaFormData.estado
                     }
 
-                    if (initialData?.entrega_id) {
-                        await updateEntrega(initialData.entrega_id, entregaData)
-                    } else {
-                        await createEntrega(entregaData)
+                    console.log('Guardando entrega:', entregaData)
+
+                    try {
+                        if (entrega && entrega.id) {
+                            await updateEntrega(entrega.id, entregaData)
+                            console.log('Entrega actualizada:', entrega.id)
+                        } else {
+                            const entregaResponse = await createEntrega(entregaData)
+                            console.log('Entrega creada:', entregaResponse.data)
+                        }
+                    } catch (entregaError) {
+                        console.error('Error al guardar entrega:', entregaError)
+                        console.error('Entrega data:', entregaData)
+                        console.error('Error response:', entregaError.response?.data)
+                        throw new Error(`Error al guardar entrega: ${entregaError.response?.data?.message || entregaError.message}`)
                     }
                 }
 
                 toast.success(initialData ? 'Alquiler actualizado correctamente' : 'Alquiler creado correctamente')
-            } else {
-                // Venta
+
+                if (clienteRetira && !initialData && user) {
+                    try {
+                        await createRetiroCliente({
+                            alquiler: response.data.id,
+                            cliente: parseInt(formData.cliente),
+                            fecha: new Date().toISOString(),
+                            estado: 'PENDIENTE'
+                        })
+                    } catch (error) {
+                        console.error('Error al crear el retiro de cliente', error)
+                        toast.error('Error al crear el retiro de cliente')
+                        throw error
+                    }
+                }
+            } else if (type === 'venta') {
                 const ventaData = {
                     cliente: parseInt(formData.cliente),
                     fecha: formData.fecha,
-                    total: parseFloat(formData.total)
+                    total: parseFloat(formData.total),
+                    descuento_tipo: formData.descuento_tipo || 'NINGUNO',
+                    descuento_valor: parseFloat(formData.descuento_valor) || 0
                 }
 
                 if (initialData) {
@@ -360,14 +469,14 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                     response = await createVenta(ventaData)
                 }
 
-                // Guardar detalles
                 for (const detalle of detalles) {
                     const detalleData = {
                         venta: response.data.id,
                         producto: parseInt(detalle.producto),
                         cantidad: parseFloat(detalle.cantidad),
                         precio_unitario: parseFloat(detalle.precio_unitario),
-                        subtotal: parseFloat(detalle.subtotal)
+                        descuento_tipo: detalle.descuento_tipo || 'NINGUNO',
+                        descuento_valor: parseFloat(detalle.descuento_valor) || 0
                     }
 
                     if (detalle.id) {
@@ -378,15 +487,27 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                 }
 
                 toast.success(initialData ? 'Venta actualizada correctamente' : 'Venta creada correctamente')
+
+                if (clienteRetira && !initialData && user) {
+                    try {
+                        await createRetiroCliente({
+                            venta: response.data.id,
+                            cliente: parseInt(formData.cliente),
+                            empleado: user.id
+                        })
+                    } catch (error) {
+                        console.error('Error al crear retiro de cliente:', error)
+                    }
+                }
             }
 
             onSuccess()
             onClose()
         } catch (error) {
             console.error('Error al guardar:', error)
-            toast.error('Error al guardar los datos: ' + (error.response?.data?.message || error.message))
+            toast.error('Error al guardar los datos')
         }
-    }
+    };
 
     const clienteNombre = (id) => {
         const cliente = clientes.find((cliente) => cliente.id === id)
@@ -394,8 +515,8 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
     }
 
     const choferNombre = (id) => {
-        const chofer = choferes.find((chofer) => chofer.id === id)
-        return chofer ? `${chofer.nombre} ${chofer.primer_apellido} ${chofer.segundo_apellido}` : ''
+        const chofer = choferes.find((chofer) => chofer.id === id || chofer.empleado === id)
+        return chofer ? chofer.empleado_nombre : ''
     }
 
     const vehiculoNombre = (id) => {
@@ -403,17 +524,12 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
         return vehiculo ? `${vehiculo.modelo} ${vehiculo.placa}` : ''
     }
 
-    const productoNombre = (id) => {
-        const producto = productos.find((producto) => producto.id === id)
-        return producto ? `${producto.nombre}` : ''
-    }
-
     return (
-        <form onSubmit={handleSubmit} className='space-y-4 max-h-screen overflow-y-auto'>
-            <div>
+        <form onSubmit={handleSubmit} className='space-y-4 max-h-screen'>
+            <div className='space-y-2'>
                 <Label htmlFor='cliente'>Cliente</Label>
                 <Select
-                    value={formData.cliente ? formData.cliente.toString() : ''}
+                    value={formData.cliente}
                     onValueChange={(value) => handleSelectChange('cliente', value)}
                 >
                     <SelectTrigger>
@@ -421,7 +537,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                     </SelectTrigger>
                     <SelectContent>
                         {clientes.map((cliente) => (
-                            <SelectItem key={cliente.id} value={cliente.id.toString()}>
+                            <SelectItem key={cliente.id} value={cliente.id}>
                                 {clienteNombre(cliente.id)}
                             </SelectItem>
                         ))}
@@ -439,6 +555,7 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                 name='fecha_inicio'
                                 value={formData.fecha_inicio}
                                 onChange={handleChange}
+                                min={new Date().toISOString().split('T')[0]}
                                 required
                             />
                         </div>
@@ -475,14 +592,29 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                             </Select>
                         </div>
                         <div className='space-y-2'>
-                            <Label htmlFor='contrato'>Contrato</Label>
-                            <Input
-                                type='file'
-                                id='contrato'
-                                name='contrato'
-                                onChange={handleFileChange}
-                                required={!initialData}
-                            />
+                            <Label>Contrato</Label>
+                            <div className='flex items-center gap-2'>
+                                <Input
+                                    type='file'
+                                    id='contrato'
+                                    name='contrato'
+                                    onChange={handleFileChange}
+                                    required={!initialData}
+                                    className='hidden'
+                                />
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={() => document.getElementById('contrato').click()}
+                                >
+                                    Seleccionar archivo
+                                </Button>
+                                <span className='text-sm text-muted-foreground'>
+                                    {formData.contrato instanceof File
+                                        ? formData.contrato.name
+                                        : (formData.contrato ? 'Contrato actual' : 'Sin archivo seleccionado')}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -571,6 +703,47 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                     </Table>
                 </div>
             </div>
+
+            <div className='space-y-4 border-t pt-4'>
+                <h3 className='font-semibold text-lg'>Descuento Global</h3>
+                <div className='grid grid-cols-2 gap-4'>
+                    <div className='space-y-2'>
+                        <Label htmlFor='descuento_tipo'>Tipo de Descuento</Label>
+                        <Select
+                            value={formData.descuento_tipo}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, descuento_tipo: value }))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder='Tipo de descuento' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='NINGUNO'>Sin descuento</SelectItem>
+                                <SelectItem value='PORCENTAJE'>Porcentaje (%)</SelectItem>
+                                <SelectItem value='FIJO'>Monto fijo (₡)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {formData.descuento_tipo !== 'NINGUNO' && (
+                        <div className='space-y-2'>
+                            <Label htmlFor='descuento_valor'>
+                                {formData.descuento_tipo === 'PORCENTAJE' ? 'Porcentaje' : 'Monto'}
+                            </Label>
+                            <Input
+                                id='descuento_valor'
+                                name='descuento_valor'
+                                type='number'
+                                step={formData.descuento_tipo === 'PORCENTAJE' ? '0.01' : '1'}
+                                min='0'
+                                max={formData.descuento_tipo === 'PORCENTAJE' ? '100' : undefined}
+                                value={formData.descuento_valor}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
             <div className='space-y-2'>
                 <Label htmlFor='total'>Total</Label>
                 <Input
@@ -626,9 +799,9 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                                     {choferes.map((chofer) => (
                                                         <SelectItem
                                                             key={chofer.id}
-                                                            value={chofer.id.toString()}
+                                                            value={chofer.empleado.toString()}
                                                         >
-                                                            {choferNombre(chofer.id)}
+                                                            {choferNombre(chofer.empleado)}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -655,21 +828,43 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div>
-                                            <Label>Fecha de salida</Label>
-                                            <Input
-                                                type='date'
-                                                value={entregaFormData.fecha_salida}
-                                                onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_salida: e.target.value }))}
-                                            />
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div>
+                                                <Label>Fecha entrega</Label>
+                                                <Input
+                                                    type='date'
+                                                    value={entregaFormData.fecha_entrega}
+                                                    onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_entrega: e.target.value }))}
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Hora de entrega</Label>
+                                                <Input
+                                                    type='time'
+                                                    value={entregaFormData.hora_entrega}
+                                                    onChange={(e) => setEntregaFormData(prev => ({ ...prev, hora_entrega: e.target.value }))}
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <Label>Fecha de retorno</Label>
-                                            <Input
-                                                type='date'
-                                                value={entregaFormData.fecha_retorno}
-                                                onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_retorno: e.target.value }))}
-                                            />
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div>
+                                                <Label>Fecha devolución</Label>
+                                                <Input
+                                                    type='date'
+                                                    value={entregaFormData.fecha_devolucion}
+                                                    onChange={(e) => setEntregaFormData(prev => ({ ...prev, fecha_devolucion: e.target.value }))}
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Hora de devolución</Label>
+                                                <Input
+                                                    type='time'
+                                                    value={entregaFormData.hora_devolucion}
+                                                    onChange={(e) => setEntregaFormData(prev => ({ ...prev, hora_devolucion: e.target.value }))}
+                                                />
+                                            </div>
                                         </div>
                                         <div>
                                             <Label>Estado</Label>
@@ -681,11 +876,11 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                                                     <SelectValue placeholder='Seleccionar estado' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value='pendiente'>Pendiente</SelectItem>
-                                                    <SelectItem value='ruta'>En ruta</SelectItem>
-                                                    <SelectItem value='completada'>Completada</SelectItem>
-                                                    <SelectItem value='devuelta'>Devuelta</SelectItem>
-                                                    <SelectItem value='cancelada'>Cancelada</SelectItem>
+                                                    <SelectItem value='PENDIENTE'>Pendiente</SelectItem>
+                                                    <SelectItem value='RUTA'>En ruta</SelectItem>
+                                                    <SelectItem value='COMPLETADA'>Completada</SelectItem>
+                                                    <SelectItem value='DEVUELTA'>Devuelta</SelectItem>
+                                                    <SelectItem value='CANCELADA'>Cancelada</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -734,7 +929,6 @@ function AddEditRenSaleDeliver({ type, initialData, onClose, onSuccess }) {
                     />
                 </DialogContent>
             </Dialog>
-
         </form>
     )
 }

@@ -1,8 +1,11 @@
 import React from 'react'
 import { Package, ShoppingCart, Wrench, Clock, Shield, Star } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 function Inicio() {
+  const navigate = useNavigate();
   return (
     <div className='px-5 py-8'>
       <section className='text-center mb-12'>
@@ -12,6 +15,7 @@ function Inicio() {
           Alquiler, venta y reparación con la calidad que necesitas.
         </p>
       </section>
+      
       <section className='max-w-5xl mx-auto mb-12'>
         <div className='text-center mb-8'>
           <h2 className='text-3xl font-bold mb-1 text-popover-foreground'>Nuestros servicios</h2>
@@ -19,7 +23,7 @@ function Inicio() {
             Ofrecemos soluciones completas para todos tus proyectos de construcción
           </p>
         </div>
-        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 justify-center'>
+        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 justify-center mb-8'>
           <Card className='text-center shadow-sm border rounded-xl'>
             <CardHeader>
               <div className='w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4'>
@@ -56,11 +60,18 @@ function Inicio() {
             </CardHeader>
           </Card>
         </div>
+        
+        <div className='text-center mb-8'>
+          <Button
+            onClick={() => navigate('/catalogos')}
+            className='text-xl p-6 border-2 border-chart-2'
+            >Explora nuestros catálogos</Button>
+        </div>
       </section>
 
       <section className='max-w-6xl mx-auto mb-20'>
         <div className='text-center mb-8'>
-          <h2 className='text-2xl font-bold text-popover-foreground mb-2'>
+          <h2 className='text-3xl font-bold text-popover-foreground mb-2'>
             ¿Por qué elegirnos?
           </h2>
           <p className='text-secondary-foreground'>

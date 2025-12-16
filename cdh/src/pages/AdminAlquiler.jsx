@@ -1,11 +1,8 @@
 import React from 'react'
+import AdminCatalogo from '@/components/AdminCatalogo'
 
 function AdminAlquiler() {
-  return (
-    <div>
-        
-    </div>
-  )
+  return <AdminCatalogo tipo="alquiler" />
 }
 
 export default AdminAlquiler

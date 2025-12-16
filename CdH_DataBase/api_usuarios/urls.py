@@ -6,13 +6,14 @@ from .views import (
     MecanicoDatosListCreateView, MecanicoDatosDetailView,
     DespachoDatosListCreateView, DespachoDatosDetailView,
     AsistenciaListCreateView, AsistenciaDetailView,
-    profile_view, profile_update_view, EmpleadoListView
+    profile_view, profile_update_view, EmpleadoListView, reset_password_view
 )
 
 urlpatterns = [
     # Usuarios
     path('usuario/', UsuarioListCreateView.as_view(), name='usuarios-list'),
     path('usuario/<int:pk>/', UsuarioDetailView.as_view(), name='usuarios-detail'),
+    path('usuario/<int:pk>/reset-password/', reset_password_view, name='usuario-reset-password'),
 
     path('profile/', profile_view, name='user-profile'),
     path('profile/update/', profile_update_view, name='user-profile-update'),
